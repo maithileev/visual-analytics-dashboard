@@ -3,7 +3,13 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 const config = {
 	preprocess: vitePreprocess(),
-	kit: { adapter: adapter() }
+	kit: { adapter: adapter(
+		{
+			fallback: '404.html'
+		}
+	) }
 };
+
+config.paths = { base: process.argv.includes('dev') ? '' : "/visual-analytics-dashboard" }
 
 export default config;
