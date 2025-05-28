@@ -1,65 +1,94 @@
-<script lang="ts">
-    import { onMount } from 'svelte';
-    import { select } from 'd3-selection';
-    import { scaleTime, scaleLinear } from 'd3-scale';
-    import { axisBottom, axisLeft } from 'd3-axis';
-    import { line } from 'd3-shape';
-    import { extent } from 'd3-array';
+<!-- 
+   CODE for flip card
+   --------------------------------------------------------
+   <script lang="ts">
+    let flipped: boolean = false;
+  </script>
   
-    // Get the data from the load function
-    export let data: any;
+  <div class="card" on:click={() => (flipped = !flipped)}>
+    <div class={`inner ${flipped ? 'flipped' : ''}`}>
+      <div class="front">
+        <h2>Revenue</h2>
+        <p>$120,000</p>
+      </div>
+      <div class="back">
+        <h2>Details</h2>
+        <p>Growth: +12%<br />Compared to Q4: +5%</p>
+      </div>
+    </div>
+  </div>
   
-    // Convert CSV data to usable format
-    let points = (data.parsedCSV.data as any[])
-      .map((row) => ({
-        date: new Date(row.Timestamp),
-        value: parseFloat(row.temp_min)
-      }))
-      .filter(d => !isNaN(d.date.getTime()) && !isNaN(d.value));
+  <style>
+    .card {
+      width: 200px;
+      height: 150px;
+      perspective: 1000px;
+      cursor: pointer;
+    }
   
-    let svg: SVGSVGElement | null = null;
+    .inner {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.6s ease-in-out;
+    }
   
-    const width = 700;
-    const height = 300;
-    const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+    .flipped {
+      transform: rotateY(180deg);
+    }
   
-    onMount(() => {
-      if (!svg || !points.length) return;
+    .front,
+    .back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      background-color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
   
-      const svgEl = select(svg);
+    .back {
+      background-color: #e8f0fe;
+      transform: rotateY(180deg);
+    }
+  </style>
+   -->
 
-      // Scales
-      const x = scaleTime()
-        .domain(extent(points, d => d.date) as [Date, Date])
-        .range([margin.left, width - margin.right]);
+   <script lang="ts">
+    import { onMount } from 'svelte';
   
-      const y = scaleLinear()
-        .domain(extent(points, d => d.value) as [number, number])
-        .range([height - margin.bottom, margin.top]);
+    let mapContainer: HTMLDivElement;
   
-      // X and Y Axes
-      svgEl.append('g')
-        .attr('transform', `translate(0,${height - margin.bottom})`)
-        .call(axisBottom(x));
+    onMount(async () => {
+      if (!mapContainer) return;
   
-      svgEl.append('g')
-        .attr('transform', `translate(${margin.left},0)`)
-        .call(axisLeft(y));
+      const L = (await import('leaflet')).default;
+      await import('leaflet/dist/leaflet.css');
   
-      // Line generation
-      const lineGen = line<any>()
-        .x(d => x(d.date))
-        .y(d => y(d.value));
+      const bounds = L.latLngBounds(
+        [40.80, 14.20],  // Southwest corner (approx)
+        [40.90, 14.35]   // Northeast corner (approx)
+      );
+
+      const map = L.map(mapContainer, {
+        maxBounds: bounds,
+        maxBoundsViscosity: 1.0,
+        minZoom: 13,
+        maxZoom: 16
+      }).setView([40.8522, 14.2681], 14);
   
-      svgEl.append('path')
-        .datum(points)
-        .attr('fill', 'none')
-        .attr('stroke', 'steelblue')
-        .attr('d', lineGen);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
     });
   </script>
   
-  <h2>Minimum Daily Temperature</h2>
-  <svg bind:this={svg} width={width} height={height}></svg>
-  
-  
+  <div bind:this={mapContainer} style="height:400px; width:100%; border-radius:8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"></div>
+    
