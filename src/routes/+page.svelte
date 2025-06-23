@@ -60,35 +60,74 @@
     }
   </style>
    -->
-
    <script lang="ts">
-    import { onMount } from 'svelte';
+    import AveragePrice from '$lib/components/AveragePrice.svelte';
+    import SummaryTiles from '$lib/components/SummaryTiles.svelte';
+    import Map from '$lib/components/Map.svelte';
+    import type { PageData } from './$types';
   
-    let mapContainer: HTMLDivElement;
+    type PageData  = {
+      geojson : any ;
+      availableStays : number;
+      averagePriceRounded : number;
+      minPrice : number;
+      maxPrice : number;
+      averageRatingRounded: number;
+    }
   
-    onMount(async () => {
-      if (!mapContainer) return;
-  
-      const L = (await import('leaflet')).default;
-      await import('leaflet/dist/leaflet.css');
-  
-      const bounds = L.latLngBounds(
-        [40.80, 14.20],  // Southwest corner (approx)
-        [40.90, 14.35]   // Northeast corner (approx)
-      );
-
-      const map = L.map(mapContainer, {
-        maxBounds: bounds,
-        maxBoundsViscosity: 1.0,
-        minZoom: 13,
-        maxZoom: 16
-      }).setView([40.8522, 14.2681], 14);
-  
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(map);
-    });
+    export let data : PageData
+    const totalStaysLabel = "Available Stays";
+    const totalStaysSubtext = "Actively listed rentals across the city";
+    const averagePriceSubtext = "What you might spend to stay here";
+    const averageRatingSubtext = "Reflecting how guests rate their stays"
   </script>
   
-  <div bind:this={mapContainer} style="height:400px; width:100%; border-radius:8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"></div>
+  <section class="kpi-grid">
+    <div class="bg-white p-4 rounded shadow">
+      <SummaryTiles 
+        value={data.availableStays} 
+        label={totalStaysLabel} 
+        subtext={totalStaysSubtext} />
+    </div>
+    <div class="bg-white p-4 rounded shadow">
+      <SummaryTiles 
+        value={data.averagePriceRounded} 
+        label="Average Price per night" 
+        subtext={averagePriceSubtext} />
+    </div>
+    <div class="bg-white p-4 rounded shadow">
+      <SummaryTiles 
+        value={data.averageRatingRounded}
+        label="Average Rating" 
+        subtext={averageRatingSubtext} />
+    </div>
+    <div class="bg-white p-4 rounded shadow">
+      <AveragePrice 
+        value= "TODO" 
+        label="Price range" 
+        subtext={averagePriceSubtext} />
+    </div>
+
+  </section>
+  
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Left: Map  -->
+    <div class="bg-white p-4 rounded shadow">
+      <h2 class="text-lg font-semibold mb-2">Rental Distribution Map</h2>
+      <Map geojson={data.geojson} />
+    </div>
+  
+    <!-- Right: Charts -->
+    <div class="space-y-4">
+      <div class="bg-white p-4 rounded shadow">[Chart 1]</div>
+      <div class="bg-white p-4 rounded shadow">[Chart 2]</div>
+    </div>
+  </section>  
+  <div class="bg-white p-4 rounded shadow">
+    <h2 class="text-lg font-semibold mb-2">Recommendations</h2>
+  </div>
+
+    
+    
+    
     

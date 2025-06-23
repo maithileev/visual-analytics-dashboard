@@ -1,0 +1,19 @@
+/* static/global.css */
+body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+  }
+  
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    width: 100%;
+  }
+  
+  @media (max-width: 768px) {
+    .kpi-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
