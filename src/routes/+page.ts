@@ -1,7 +1,7 @@
 import type { PageLoad } from './$types';
 import Papa from 'papaparse';
-// import { base } from '$app/paths';
-const base = ''
+import { base } from '$app/paths';
+//const base = ''
 
 export const load: PageLoad =  async function load({ fetch }) {
 
