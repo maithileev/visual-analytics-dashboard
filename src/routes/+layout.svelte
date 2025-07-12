@@ -1,50 +1,31 @@
-<script>
+  <script>
     import '../global.css';
-</script>
-  
-  <style>
-    .full-vh {
-      height: calc(var(--vh, 1vh) * 100);
-      min-height: calc(var(--vh, 1vh) * 100);
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-    }
-  
-    :global(html, body) {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      width: 100%;
-    }
-  
-    header, footer {
-      background-color: #0077cc;
-      color: white;
-      padding: 1rem 2rem;
-      flex-shrink: 0;
-    }
-  
-    .filters {
-      background-color: white;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      margin: 1rem 2rem;
-    }
-  </style>
+    import Tabs from '$lib/components/Tabs.svelte';
+    import { currentTab } from '$lib/stores';
+    import { base } from '$app/paths';
+    import { page } from '$app/stores';
+
+  </script>
   
   <div class="full-vh">
     <header>
       <h1>Smart Stays: Naples Airbnb Analytics</h1>
     </header>
+<!--   
+    <Tabs />
   
-    <section class="filters">
-      <slot name="filters">
-        <p class="text-sm text-gray-600">[Filters go here]</p>
-      </slot>
-    </section>
+    {#if $currentTab !== 'overview'}
+      <section class="filters">
+        <slot name="filters" />
+      </section>
+    {/if} -->
   
+    <nav class="nav-tabs">
+      <a href="{base}/" class:selected={$page.url.pathname === base + '/'}>Overview</a>
+      <a href="{base}/tourist" class:selected={$page.url.pathname === base + '/tourist'}>Tourist</a>
+      <a href="{base}/investor" class:selected={$page.url.pathname === base + '/investor'}>Investor</a>
+    </nav>
+    
     <main style="flex-grow:1; padding: 1rem 2rem; overflow-y: auto;">
       <slot />
     </main>

@@ -1,6 +1,7 @@
 import type { PageLoad } from './$types';
 import Papa from 'papaparse';
 import { base } from '$app/paths';
+import { prepareBubbleChart } from '$lib/utils/prepareBubbleChart';
 
 export const load: PageLoad =  async function load({ fetch }) {
 
@@ -37,32 +38,6 @@ export const load: PageLoad =  async function load({ fetch }) {
     return value > 0;
   }).length;
 
-  //License data
-  function getLicenseCategory(value: string | undefined): string {
-    if (!value || value.trim() === '') return 'No Info';
-
-    const trimmed = value.trim().toLowerCase();
-
-    if (trimmed.includes('applied')) return 'Applied';
-    if (trimmed.includes('exempt')) return 'Exempt';
-    if (/^it[0-9a-z]+$/i.test(value.trim())) return 'Has License'; // Starts with "IT", alphanumeric
-    if (/^\d+$/.test(trimmed)) return 'Incorrect'; // Only numbers (invalid)
-  
-    return 'Other';
-  }
-
-  function countLicense(data: Record<string, string>[]) {
-    const counts: Record<string, number> = {};
-  
-    detailed_data.forEach(detailed_data_rows => {
-      const category = getLicenseCategory(detailed_data_rows['license']);
-      counts[category] = (counts[category] || 0) + 1;
-    });
-  
-    return counts;
-  }
-
-  const licenseSummary = countLicense(detailed_data);
 
   type DataRow = Record<string, string>;
 
@@ -165,74 +140,21 @@ export const load: PageLoad =  async function load({ fetch }) {
   const averageReviewsPerMonth = reviewsPerMonth.length ? (totalReviewsPerMonth / reviewsPerMonth.length) : 0;
   const averageReviewsPerMonthRounded = averageReviewsPerMonth.toFixed(2);
 
-  // Min nights
-  const minNightsArray: number[] = data
-  .map(row => {
-    const val = row['minimum_nights']?.trim() || '0';
-    const parsedVal = parseInt(val, 10);
-    return isNaN(parsedVal) ? 0 : parsedVal;
-  })
-  .filter(val => val > 0);
+// Popularity of neighborhoods based on price, rating, and no. of listings(bubble size)
+const bubbleData = prepareBubbleChart(detailed_data_rows, 'neighbourhood_cleansed', 'price', 'review_scores_rating');
+console.log("Bubble data length - ",bubbleData.length);
 
-const averageMinNights = minNightsArray.length
-  ? minNightsArray.reduce((sum, val) => sum + val, 0) / minNightsArray.length
-  : 0;
-
-// Round to 2 decimals
-const averageMinNightsRounded = averageMinNights.toFixed(2);
-
-
-// Occupancy Rate
-const occupancyRates = data
-  .map(row => {
-    const availabilityStr = row['availability_365']?.trim() || '0';
-    const availability = parseInt(availabilityStr, 10);
-    return isNaN(availability) ? 0 : availability / 365;
-  })
-  .filter(rate => rate > 0);
-
-const averageOccupancyRate = occupancyRates.length
-  ? (occupancyRates.reduce((sum, r) => sum + r, 0) / occupancyRates.length) * 100
-  : 0;
-
-const averageOccupancyRateRounded = averageOccupancyRate.toFixed(2);
-
-//Revenue 
-let revenueSum = 0;
-let listingCount = 0;
-
-for (const row of detailed_data) {
-  let priceStr = row['price']?.trim() || '0';
-  priceStr = priceStr.replace(/[^0-9.]/g, '');
-  const price = parseFloat(priceStr);
-
-  const nightsAvailable = parseInt(row['availability_365'] || '0', 10);
-  const occupancyRate = nightsAvailable / 365;
-
-  if (!isNaN(price) && !isNaN(nightsAvailable)) {
-    const estimatedRevenue = occupancyRate * price * nightsAvailable;
-    revenueSum += estimatedRevenue;
-    listingCount += 1;
-  }
-}
-
-const avgEstimatedRevenue = listingCount > 0 ? revenueSum / listingCount : 0;
-const avgEstimatedRevenueRounded = avgEstimatedRevenue.toFixed(2);
-
-  return {
+return {
     geojson,
     availableStays,
     averagePriceRounded,
     minPrice,
     maxPrice,
    averageRatingRounded,
-   licenseSummary,
    superhostCounts,
    instantBookableCounts,
    averageReviewsPerMonthRounded,
-   averageMinNightsRounded,
-   averageOccupancyRateRounded,
-   avgEstimatedRevenueRounded
+   bubbleData
   };
 
 }

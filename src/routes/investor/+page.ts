@@ -1,6 +1,9 @@
 import type { PageLoad } from './$types';
 import Papa from 'papaparse';
 import { base } from '$app/paths';
+import {calculateOverallOccupancyRate, groupAverageRevenueByNeighborhood} from '$lib/utils/aggregate';
+import { prepareBubbleChart } from '$lib/utils/prepareBubbleChart';
+
 
 export const load: PageLoad =  async function load({ fetch }) {
 
@@ -31,12 +34,6 @@ export const load: PageLoad =  async function load({ fetch }) {
   const detailed_data = detailed_parsed.data as Record<string, string>[];
   const detailed_data_rows = detailed_parsed.data as any[];
 
-  //Available listings availability_365 > 0
-  const availableStays = data.filter(row => {
-    const value = parseInt(row['availability_365'] ?? '0', 10);
-    return value > 0;
-  }).length;
-
   //License data
   function getLicenseCategory(value: string | undefined): string {
     if (!value || value.trim() === '') return 'No Info';
@@ -46,9 +43,9 @@ export const load: PageLoad =  async function load({ fetch }) {
     if (trimmed.includes('applied')) return 'Applied';
     if (trimmed.includes('exempt')) return 'Exempt';
     if (/^it[0-9a-z]+$/i.test(value.trim())) return 'Has License'; // Starts with "IT", alphanumeric
-    if (/^\d+$/.test(trimmed)) return 'Incorrect'; // Only numbers (invalid)
+    if (/^\d+$/.test(trimmed)) return 'No Info'; // Only numbers (invalid)
   
-    return 'Other';
+    return 'No Info';
   }
 
   function countLicense(data: Record<string, string>[]) {
@@ -95,17 +92,6 @@ export const load: PageLoad =  async function load({ fetch }) {
     return counts;
   }
 
-  const superhostCountsRaw = countBooleanStatus(
-    detailed_data,
-    'host_id',
-    'host_is_superhost',
-    't'
-  );
-  const superhostCounts = {
-    'Superhost': superhostCountsRaw['True'],
-    'Not Superhost': superhostCountsRaw['False']
-  };
-  console.log(superhostCounts)
   const instantBookableCountsRaw = countBooleanStatus(
     detailed_data,
     'id',
@@ -118,44 +104,6 @@ export const load: PageLoad =  async function load({ fetch }) {
   };
 
   console.log(instantBookableCounts)
-  //Average Price
-  const prices: number[] = detailed_data
-  .map(detailed_data_rows => {
-    let priceStr = detailed_data_rows['price']?.trim() || '0';
-    priceStr = priceStr.replace(/[^0-9.]/g, '');
-    return parseFloat(priceStr);
-  })
-  .filter(price => !isNaN(price) && price > 0);
-
-  const totalPrice = prices.reduce((sum, p) => sum + p, 0);
-  const averagePrice = prices.length ? (totalPrice / rows.length) : 0;
-
-  const sortedPricesDesc = prices.sort((a, b) => b - a);
-  //console.log("Prices" , sortedPricesDesc);
-  // Round to 2 decimals
-  const averagePriceRounded = averagePrice.toFixed(2);
-
-  //Min and Max price range
-  const minPrice = prices.length ? Math.min(...prices) : 0;
-  const maxPrice = prices.length ? Math.max(...prices) : 0;
-
-  console.log('Cleaned price values:', prices.slice(0, 10));
-  console.log('Min:', minPrice, 'Max:', maxPrice);
-
-  //Average Ratings
-  const ratings : number[] = detailed_data.map(detailed_data_rows =>     
-    {let rating = detailed_data_rows['review_scores_rating']?.trim() || '0';
-    return parseFloat(rating);
-    }
-  )
-  .filter(rating => !isNaN(rating));
-  console.log('Ratings',ratings[0-10]);
-
-  const averageRating = ratings.length
-  ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
-  : 0;
-  const averageRatingRounded = averageRating.toFixed(2);
-
 
   const reviewsPerMonth: number[] = data
   .map(row => parseFloat(row['reviews_per_month'] || '0'))
@@ -180,24 +128,9 @@ const averageMinNights = minNightsArray.length
 
 // Round to 2 decimals
 const averageMinNightsRounded = averageMinNights.toFixed(2);
+const averageOccupancyRateRounded = calculateOverallOccupancyRate(detailed_data);
 
-
-// Occupancy Rate
-const occupancyRates = data
-  .map(row => {
-    const availabilityStr = row['availability_365']?.trim() || '0';
-    const availability = parseInt(availabilityStr, 10);
-    return isNaN(availability) ? 0 : availability / 365;
-  })
-  .filter(rate => rate > 0);
-
-const averageOccupancyRate = occupancyRates.length
-  ? (occupancyRates.reduce((sum, r) => sum + r, 0) / occupancyRates.length) * 100
-  : 0;
-
-const averageOccupancyRateRounded = averageOccupancyRate.toFixed(2);
-
-//Revenue 
+//Overall Revenue 
 let revenueSum = 0;
 let listingCount = 0;
 
@@ -219,20 +152,21 @@ for (const row of detailed_data) {
 const avgEstimatedRevenue = listingCount > 0 ? revenueSum / listingCount : 0;
 const avgEstimatedRevenueRounded = avgEstimatedRevenue.toFixed(2);
 
+// Revenue by Neighborhood
+const avgRevenueByNeighborhood = groupAverageRevenueByNeighborhood(detailed_data);
+
+const bubbleData = prepareBubbleChart(detailed_data_rows, 'neighbourhood_cleansed', 'estimated_occupancy_l365d', 'review_scores_rating');
+
   return {
     geojson,
-    availableStays,
-    averagePriceRounded,
-    minPrice,
-    maxPrice,
-   averageRatingRounded,
    licenseSummary,
-   superhostCounts,
    instantBookableCounts,
    averageReviewsPerMonthRounded,
    averageMinNightsRounded,
    averageOccupancyRateRounded,
-   avgEstimatedRevenueRounded
+   avgEstimatedRevenueRounded,
+   avgRevenueByNeighborhood,
+   bubbleData
   };
 
 }

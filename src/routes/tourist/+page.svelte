@@ -1,5 +1,5 @@
 
-   <script lang="ts">
+<script lang="ts">
     import { currentTab } from '$lib/stores';
     import AveragePrice from '$lib/components/AveragePrice.svelte';
     import SummaryTiles from '$lib/components/SummaryTiles.svelte';
@@ -7,6 +7,8 @@
     import type { PageData } from './$types';
     import DonutChart from '$lib/charts/DonutChart.svelte';
     import HorizontalBarChart from '$lib/charts/HorizontalBarChart.svelte';
+    import BubbleChart from '$lib/charts/BubbleChart.svelte';
+
 
     type PageData  = {
       geojson : any ;
@@ -15,13 +17,9 @@
       minPrice : number;
       maxPrice : number;
       averageRatingRounded: number;
-      licenseSummary: Record<string, number>;
       superhostCounts: Record<string, number>;
       instantBookableCounts: Record<string, number>;
-      averageReviewsPerMonthRounded: number;
-      averageMinNightsRounded: number;
-      averageOccupancyRateRounded: number;
-      avgEstimatedRevenueRounded: number;
+      bubbleData : any;
     }
   
     export let data : PageData
@@ -44,8 +42,8 @@
         label="Average Price per night" 
         subtext={averagePriceSubtext} />
     </div>
-    <div class="bg-white p-5 rounded shadow">      
-      <DonutChart summaryData={data.licenseSummary} />
+    <div class="bg-white p-5 rounded shadow">
+        <DonutChart summaryData={data.superhostCounts} />
     </div>
     <div class="bg-white p-5 rounded shadow">
       <SummaryTiles 
@@ -54,10 +52,10 @@
         subtext={averageRatingSubtext} />
     </div>
     <div class="bg-white p-5 rounded shadow">
-      <SummaryTiles 
-        value="{data.averageOccupancyRateRounded}%"
-        label="Occupancy rate" 
-        subtext="Shows how often listings are booked over the year" />
+      <AveragePrice 
+        value= "TODO" 
+        label="Price range" 
+        subtext={averagePriceSubtext} />
     </div>
 
   </section>
@@ -73,14 +71,15 @@
     <div class="space-y-4">
       <div class="bg-white p-4 rounded shadow"><HorizontalBarChart data={data.instantBookableCounts} />
       </div>
-      <div class="bg-white p-4 rounded shadow">[Chart 2]</div>
+      <div class="bg-white p-4 rounded shadow">
+          <h2 class="text-lg font-semibold mb-2">Find the Sweet Spot: Price vs. Rating</h2>
+          <BubbleChart data={data.bubbleData} 
+          xLabel="Average Price ($)"
+          yLabel="Average Rating"
+                />
+      </div>
     </div>
   </section>  
   <div class="bg-white p-4 rounded shadow">
     <h2 class="text-lg font-semibold mb-2">Recommendations</h2>
   </div>
-
-    
-    
-    
-    

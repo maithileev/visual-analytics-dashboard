@@ -1,5 +1,5 @@
 
-   <script lang="ts">
+<script lang="ts">
     import { currentTab } from '$lib/stores';
     import AveragePrice from '$lib/components/AveragePrice.svelte';
     import SummaryTiles from '$lib/components/SummaryTiles.svelte';
@@ -7,57 +7,51 @@
     import type { PageData } from './$types';
     import DonutChart from '$lib/charts/DonutChart.svelte';
     import HorizontalBarChart from '$lib/charts/HorizontalBarChart.svelte';
-
+    import ChloroplethMap from '$lib/charts/ChloroplethMap.svelte';
+    import BubbleChart from '$lib/charts/BubbleChart.svelte';
     type PageData  = {
       geojson : any ;
-      availableStays : number;
-      averagePriceRounded : number;
-      minPrice : number;
-      maxPrice : number;
-      averageRatingRounded: number;
       licenseSummary: Record<string, number>;
-      superhostCounts: Record<string, number>;
       instantBookableCounts: Record<string, number>;
       averageReviewsPerMonthRounded: number;
       averageMinNightsRounded: number;
       averageOccupancyRateRounded: number;
       avgEstimatedRevenueRounded: number;
+      avgRevenueByNeighborhood: Record<string, number>;
+      bubbleData : any;
+
     }
   
     export let data : PageData
-    const totalStaysLabel = "Available Stays";
-    const totalStaysSubtext = "Actively listed rentals across the city";
-    const averagePriceSubtext = "What you might spend to stay here";
-    const averageRatingSubtext = "Reflecting how guests rate their stays"
   </script>
   
   <section class="kpi-grid">
     <div class="bg-white p-5 rounded shadow">
-      <SummaryTiles 
-        value={data.availableStays} 
-        label={totalStaysLabel} 
-        subtext={totalStaysSubtext} />
+        <SummaryTiles 
+        value={data.averageReviewsPerMonthRounded}
+        label="Average Monthly Reviews" 
+        subtext="How often guests write reviews each month."/>
     </div>
     <div class="bg-white p-5 rounded shadow">
-      <SummaryTiles 
-        value={data.averagePriceRounded} 
-        label="Average Price per night" 
-        subtext={averagePriceSubtext} />
-    </div>
-    <div class="bg-white p-5 rounded shadow">      
-      <DonutChart summaryData={data.licenseSummary} />
+        <SummaryTiles 
+        value={data.averageMinNightsRounded} 
+        label="Average Minimum Nights"
+        subtext="Typical minimum stay guests must book." />
     </div>
     <div class="bg-white p-5 rounded shadow">
-      <SummaryTiles 
-        value={data.averageRatingRounded}
-        label="Average Rating" 
-        subtext={averageRatingSubtext} />
+        <DonutChart summaryData={data.licenseSummary} />
     </div>
     <div class="bg-white p-5 rounded shadow">
-      <SummaryTiles 
+        <SummaryTiles 
         value="{data.averageOccupancyRateRounded}%"
         label="Occupancy rate" 
         subtext="Shows how often listings are booked over the year" />
+    </div>
+    <div class="bg-white p-5 rounded shadow">
+        <SummaryTiles 
+        value={data.avgEstimatedRevenueRounded}
+        label="Estimated Annual Revenue" 
+        subtext="Expected income per listing based on occupancy and price" />
     </div>
 
   </section>
@@ -65,22 +59,23 @@
   <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Left: Map  -->
     <div class="bg-white p-4 rounded shadow">
-      <h2 class="text-lg font-semibold mb-2">Rental Distribution Map</h2>
-      <Map geojson={data.geojson} />
+      <h2 class="text-lg font-semibold mb-2">Annual Revenue Potential Across Neighborhoods      </h2>
+      <ChloroplethMap geojson={data.geojson} metricData={data.avgRevenueByNeighborhood} />
     </div>
   
     <!-- Right: Charts -->
     <div class="space-y-4">
       <div class="bg-white p-4 rounded shadow"><HorizontalBarChart data={data.instantBookableCounts} />
       </div>
-      <div class="bg-white p-4 rounded shadow">[Chart 2]</div>
+      <div class="bg-white p-4 rounded shadow">
+        <h2 class="text-lg font-semibold mb-2">Find the Sweet Spot: Price vs. Rating</h2>
+        <BubbleChart data={data.bubbleData}  
+        xLabel="Average Occupancy Rate (%)"
+        yLabel="Average Rating"
+            />
     </div>
+  </div>
   </section>  
   <div class="bg-white p-4 rounded shadow">
     <h2 class="text-lg font-semibold mb-2">Recommendations</h2>
   </div>
-
-    
-    
-    
-    
