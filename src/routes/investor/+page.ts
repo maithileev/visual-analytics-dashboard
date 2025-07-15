@@ -3,7 +3,7 @@ import Papa from 'papaparse';
 import { base } from '$app/paths';
 import {calculateOverallOccupancyRate, groupAverageRevenueByNeighborhood} from '$lib/utils/aggregate';
 import { prepareBubbleChart } from '$lib/utils/prepareBubbleChart';
-
+import { aggregatePropertyType } from '$lib/utils/aggregate';
 
 export const load: PageLoad =  async function load({ fetch }) {
 
@@ -27,6 +27,7 @@ export const load: PageLoad =  async function load({ fetch }) {
     skipEmptyLines: true
   });
   console.log(Object.keys(parsed.data[0]));
+  console.log(Object.keys(detailed_parsed.data[0]));
 
   const data = parsed.data as Record<string, string>[];
   const rows = parsed.data as any[];
@@ -157,6 +158,8 @@ const avgRevenueByNeighborhood = groupAverageRevenueByNeighborhood(detailed_data
 
 const bubbleData = prepareBubbleChart(detailed_data_rows, 'neighbourhood_cleansed', 'estimated_occupancy_l365d', 'review_scores_rating');
 
+const overallPropertyTypeData = aggregatePropertyType(detailed_data_rows); // if selected neighborhood needed, pass it in too
+//console.log("Property types -" ,overallPropertyTypeData)
   return {
     geojson,
    licenseSummary,
@@ -166,7 +169,8 @@ const bubbleData = prepareBubbleChart(detailed_data_rows, 'neighbourhood_cleanse
    averageOccupancyRateRounded,
    avgEstimatedRevenueRounded,
    avgRevenueByNeighborhood,
-   bubbleData
+   bubbleData,
+   overallPropertyTypeData
   };
 
 }

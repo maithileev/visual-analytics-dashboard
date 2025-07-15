@@ -1,90 +1,132 @@
-<script lang="ts">
+
+   <script lang="ts">
     import { onMount } from 'svelte';
     import * as d3 from 'd3';
   
-    export let data: Record<string, number> = {};
+    export let data: { [key: string]: string | number }[] = [];
+    export let labelField: string = 'label';
+    export let overallField: string = 'overall';
+    export let compareField: string | null = null; // null means no overlay
+    export let colors: string[] = d3.schemeSet2;
+    export let valueFormatter: (value: number) => string = (v) => v.toFixed(0);
   
     let svg: SVGSVGElement;
   
-    onMount(() => {
-      drawChart();
-    });
+    onMount(() => drawChart());
+    $: if (data && svg) drawChart();
   
     function drawChart() {
-      if (!svg) return;
+      if (!svg || !data.length) return;
   
-      const chartData = Object.entries(data).map(([label, value]) => ({ label, value }));
-      const total = chartData.reduce((sum, d) => sum + d.value, 0);
-      const processedData = chartData.map(d => ({
-        ...d,
-        percent: ((d.value / total) * 100).toFixed(1) + '%'
-      }));
+      const margin = { top: 30, right: 60, bottom: 10, left: 120 };
+      const barHeight = 40; // Increased bar height from 30 to 40
+      const height = data.length * (barHeight + 15); // Increased vertical spacing for clarity
+      const width = 450; // Slightly wider
   
-      const margin = { top: 10, right: 60, bottom: 10, left: 120 };
-      const barHeight = 30;
-      const height = processedData.length * (barHeight + 10);
-      const width = 400;
-  
-      d3.select(svg).selectAll("*").remove(); // Clear previous chart
-  
+      d3.select(svg).selectAll('*').remove();
       const svgSelection = d3
         .select(svg)
-        .attr("width", width)
-        .attr("height", height + margin.top + margin.bottom);
+        .attr('width', width)
+        .attr('height', height + margin.top + margin.bottom);
   
-      const chart = svgSelection.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+      const chart = svgSelection.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
   
-      const x = d3
-        .scaleLinear()
-        .domain([0, d3.max(processedData, d => d.value) || 0])
-        .range([0, width - margin.left - margin.right]);
+      const hasCompareData = compareField && compareField !== overallField;
   
       const y = d3
         .scaleBand()
-        .domain(processedData.map(d => d.label))
+        .domain(data.map(d => d[labelField] as string))
         .range([0, height])
-        .padding(0.2);
+        .padding(0.25); // Slightly more padding between bars
   
-      const colors = d3.schemeSet2;
+      if (!hasCompareData) {
+        // Simple bars without grey background
   
-      // Bars
-      chart
-        .selectAll('rect')
-        .data(processedData)
-        .enter()
-        .append('rect')
-        .attr('y', d => y(d.label)!)
-        .attr('height', y.bandwidth())
-        .attr('x', 0)
-        .attr('width', 0) // Start at 0 width
-        .attr('fill', (d, i) => colors[i % colors.length])
-        .transition()
-        .duration(800)
-        .delay((d, i) => i * 100) // Optional stagger effect
-        .attr('width', d => x(d.value));
+        const x = d3
+          .scaleLinear()
+          .domain([0, d3.max(data, d => +d[overallField]) || 0])
+          .range([0, width - margin.left - margin.right]);
   
-      // Percent labels
-      chart
-        .selectAll('text.percent')
-        .data(processedData)
-        .enter()
-        .append('text')
-        .attr('class', 'percent')
-        .attr('x', d => x(d.value) + 6)
-        .attr('y', d => (y(d.label) || 0) + y.bandwidth() / 2 + 4)
-        .text(d => d.percent)
-        .style('font-size', '12px')
+        chart.selectAll('rect')
+          .data(data)
+          .enter()
+          .append('rect')
+          .attr('y', d => y(d[labelField] as string)!)
+          .attr('x', 0)
+          .attr('height', y.bandwidth())
+          .attr('width', 0)
+          .attr('fill', (d, i) => colors[i % colors.length])
+          .transition()
+          .duration(800)
+          .attr('width', d => x(+d[overallField]));
+  
+        chart.selectAll('text.value')
+          .data(data)
+          .enter()
+          .append('text')
+          .attr('class', 'value')
+          .attr('x', d => x(+d[overallField]) + 8)
+          .attr('y', d => (y(d[labelField] as string) || 0) + y.bandwidth() / 2 + 6)
+          .text(d => valueFormatter(+d[overallField]))
+          .style('font-size', '14px')
+          .style('fill', '#333');
+      } else {
+        // Stacked bars with grey background for overall and colored compare overlay
+  
+        const x = d3
+          .scaleLinear()
+          .domain([0, d3.max(data, d => (+d[overallField] || 0)) || 0])
+          .range([0, width - margin.left - margin.right]);
+  
+        // Grey bars for overall
+        chart.selectAll('rect.overall')
+          .data(data)
+          .enter()
+          .append('rect')
+          .attr('class', 'overall')
+          .attr('y', d => y(d[labelField] as string)!)
+          .attr('x', 0)
+          .attr('height', y.bandwidth())
+          .attr('width', 0)
+          .attr('fill', '#d3d3d3')
+          .transition()
+          .duration(800)
+          .attr('width', d => x(+d[overallField]));
+  
+        // Colored bars for compare (overlay)
+        chart.selectAll('rect.compare')
+          .data(data)
+          .enter()
+          .append('rect')
+          .attr('class', 'compare')
+          .attr('y', d => y(d[labelField] as string)!)
+          .attr('x', 0)
+          .attr('height', y.bandwidth())
+          .attr('width', 0)
+          .attr('fill', (d, i) => colors[i % colors.length])
+          .transition()
+          .duration(800)
+          .attr('width', d => x(+d[compareField!]));
+  
+        chart.selectAll('text.value')
+          .data(data)
+          .enter()
+          .append('text')
+          .attr('class', 'value')
+          .attr('x', d => x(+d[compareField!]) + 8)
+          .attr('y', d => (y(d[labelField] as string) || 0) + y.bandwidth() / 2 + 6)
+          .text(d => valueFormatter(+d[compareField!]))
+          .style('font-size', '14px')
+          .style('fill', '#333');
+      }
+  
+      chart.append('g')
+        .call(d3.axisLeft(y).tickSize(0))
+        .selectAll('text')
+        .style('font-size', '14px')
         .style('fill', '#333');
   
-      // Y-axis labels
-      chart
-        .append("g")
-        .call(d3.axisLeft(y).tickSize(0))
-        .selectAll("text")
-        .style("font-size", "12px")
-        .style("fill", "#333");
-  
-      chart.select(".domain").remove(); // Remove y-axis
+      chart.select('.domain').remove();
     }
   </script>
   
@@ -95,20 +137,21 @@
       overflow: visible;
     }
   
-    .bar {
+    rect {
       transition: fill 0.3s ease;
       cursor: pointer;
     }
   
-    .bar:hover {
+    rect:hover {
       opacity: 0.85;
     }
   
-    .value {
+    text.value {
       fill: #333;
-      font-weight: 500;
+      font-weight: 600;
     }
   </style>
   
   <svg bind:this={svg}></svg>
+    
   

@@ -19,6 +19,7 @@
       avgEstimatedRevenueRounded: number;
       avgRevenueByNeighborhood: Record<string, number>;
       bubbleData : any;
+      overallPropertyTypeData : any;
 
     }
   
@@ -60,7 +61,10 @@
     <!-- Left: Map  -->
     <div class="bg-white p-4 rounded shadow">
       <h2 class="text-lg font-semibold mb-2">Annual Revenue Potential Across Neighborhoods      </h2>
-      <ChloroplethMap geojson={data.geojson} metricData={data.avgRevenueByNeighborhood} />
+      <ChloroplethMap geojson={data.geojson} values={data.avgRevenueByNeighborhood}       
+      label="Average Revenue"
+      unit=""
+      tooltipFormatter={(v) => v.toFixed(2)}/>
     </div>
   
     <!-- Right: Charts -->
@@ -68,12 +72,20 @@
       <div class="bg-white p-4 rounded shadow"><HorizontalBarChart data={data.instantBookableCounts} />
       </div>
       <div class="bg-white p-4 rounded shadow">
-        <h2 class="text-lg font-semibold mb-2">Find the Sweet Spot: Price vs. Rating</h2>
+        <h2 class="text-lg font-semibold mb-2">Neighborhood Popularity: Occupancy vs. Rating</h2>
         <BubbleChart data={data.bubbleData}  
         xLabel="Average Occupancy Rate (%)"
         yLabel="Average Rating"
             />
     </div>
+    <div class="bg-white p-4 rounded shadow">
+      <h2 class="text-lg font-semibold mb-2">Room Type Distribution</h2>
+        <HorizontalBarChart
+        data={data.overallPropertyTypeData}
+        labelField="label"
+        overallField="overall"/>
+    </div>
+
   </div>
   </section>  
   <div class="bg-white p-4 rounded shadow">

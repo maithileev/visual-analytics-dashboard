@@ -2,7 +2,7 @@ import type { PageLoad } from './$types';
 import Papa from 'papaparse';
 import { base } from '$app/paths';
 import { prepareBubbleChart } from '$lib/utils/prepareBubbleChart';
-
+import { aggregateRoomType, aggregateAverageRating } from '$lib/utils/aggregate';
 export const load: PageLoad =  async function load({ fetch }) {
 
   const geoRes = await fetch(base + '/neighbourhoods.geojson');
@@ -80,7 +80,9 @@ export const load: PageLoad =  async function load({ fetch }) {
     'Superhost': superhostCountsRaw['True'],
     'Not Superhost': superhostCountsRaw['False']
   };
-  console.log(superhostCounts)
+
+
+  // instant bookable or not
   const instantBookableCountsRaw = countBooleanStatus(
     detailed_data,
     'id',
@@ -92,7 +94,7 @@ export const load: PageLoad =  async function load({ fetch }) {
     'Not Instant bookable': instantBookableCountsRaw['False']
   };
 
-  console.log(instantBookableCounts)
+
   //Average Price
   const prices: number[] = detailed_data
   .map(detailed_data_rows => {
@@ -106,7 +108,6 @@ export const load: PageLoad =  async function load({ fetch }) {
   const averagePrice = prices.length ? (totalPrice / rows.length) : 0;
 
   const sortedPricesDesc = prices.sort((a, b) => b - a);
-  //console.log("Prices" , sortedPricesDesc);
   // Round to 2 decimals
   const averagePriceRounded = averagePrice.toFixed(2);
 
@@ -131,18 +132,15 @@ export const load: PageLoad =  async function load({ fetch }) {
   : 0;
   const averageRatingRounded = averageRating.toFixed(2);
 
-
-  const reviewsPerMonth: number[] = data
-  .map(row => parseFloat(row['reviews_per_month'] || '0'))
-  .filter(n => !isNaN(n) && n > 0);
-
-  const totalReviewsPerMonth = reviewsPerMonth.reduce((sum, val) => sum + val, 0);
-  const averageReviewsPerMonth = reviewsPerMonth.length ? (totalReviewsPerMonth / reviewsPerMonth.length) : 0;
-  const averageReviewsPerMonthRounded = averageReviewsPerMonth.toFixed(2);
-
 // Popularity of neighborhoods based on price, rating, and no. of listings(bubble size)
 const bubbleData = prepareBubbleChart(detailed_data_rows, 'neighbourhood_cleansed', 'price', 'review_scores_rating');
 console.log("Bubble data length - ",bubbleData.length);
+
+// room type distribution
+const overallRoomTypeData = aggregateRoomType(detailed_data_rows); // if selected neighborhood needed, pass it in too
+console.log('Chart data:', overallRoomTypeData);
+
+const touristRatingData = aggregateAverageRating(detailed_data_rows);
 
 return {
     geojson,
@@ -153,8 +151,9 @@ return {
    averageRatingRounded,
    superhostCounts,
    instantBookableCounts,
-   averageReviewsPerMonthRounded,
-   bubbleData
+   bubbleData,
+   overallRoomTypeData,
+   touristRatingData
   };
 
 }
