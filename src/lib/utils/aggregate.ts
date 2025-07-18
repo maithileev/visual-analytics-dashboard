@@ -146,10 +146,12 @@ export function aggregateAverageRating(rows: any[]) {
   const ratingMap = new Map<string, { total: number; count: number }>();
 
   rows.forEach(row => {
-    const hood = row.neighbourhood_cleansed;
+    const hoodRaw = row.neighbourhood_cleansed;
     const rating = parseFloat(row.review_scores_rating);
 
-    if (!hood || isNaN(rating)) return;
+    if (!hoodRaw || isNaN(rating)) return;
+
+    const hood = hoodRaw.trim().toLowerCase(); // Normalize
 
     if (!ratingMap.has(hood)) {
       ratingMap.set(hood, { total: 0, count: 0 });
@@ -166,4 +168,53 @@ export function aggregateAverageRating(rows: any[]) {
   });
 
   return result;
+}
+
+
+// lib/utils/aggregate.ts
+export function getTopNeighborhoods(data: any[], topN: number = 3) {
+  const neighborhoodStats = new Map<string, {
+    count: number;
+    totalPrice: number;
+    totalReviews: number;
+    totalRating: number;
+    superhostCount: number;
+  }>();
+
+  data.forEach(row => {
+    const name = row['neighbourhood_cleansed']?.trim() || '';
+    if (!name) return;
+
+    let stats = neighborhoodStats.get(name);
+    if (!stats) {
+      stats = { count: 0, totalPrice: 0, totalReviews: 0, totalRating: 0, superhostCount: 0 };
+      neighborhoodStats.set(name, stats);
+    }
+
+    const price = parseFloat(row['price']?.replace(/[^0-9.]/g, '') || '0');
+    const reviews = parseInt(row['number_of_reviews'] || '0', 10);
+    const rating = parseFloat(row['review_scores_rating'] || '0');
+    const isSuperhost = row['host_is_superhost'] === 't' || row['host_is_superhost'] === true;
+
+    stats.count += 1;
+    stats.totalPrice += isNaN(price) ? 0 : price;
+    stats.totalReviews += isNaN(reviews) ? 0 : reviews;
+    stats.totalRating += isNaN(rating) ? 0 : rating;
+    stats.superhostCount += isSuperhost ? 1 : 0;
+  });
+
+  // Convert map to array with calculated averages and percentages
+  const neighborhoodArray = Array.from(neighborhoodStats.entries()).map(([name, stats]) => ({
+    name,
+    avgPrice: stats.count ? stats.totalPrice / stats.count : 0,
+    totalListings: stats.count,
+    totalReviews: stats.totalReviews,
+    avgRating: stats.count ? stats.totalRating / stats.count : 0,
+    pctSuperhost: stats.count ? (stats.superhostCount / stats.count) * 100 : 0,
+  }));
+
+  // Sort by avgRating desc and limit to topN
+  neighborhoodArray.sort((a, b) => b.avgRating - a.avgRating);
+
+  return neighborhoodArray.slice(0, topN);
 }

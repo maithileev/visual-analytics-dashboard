@@ -2,7 +2,7 @@ import type { PageLoad } from './$types';
 import Papa from 'papaparse';
 import { base } from '$app/paths';
 import { prepareBubbleChart } from '$lib/utils/prepareBubbleChart';
-import { aggregateRoomType, aggregateAverageRating } from '$lib/utils/aggregate';
+import { aggregateRoomType, aggregateAverageRating, getTopNeighborhoods } from '$lib/utils/aggregate';
 export const load: PageLoad =  async function load({ fetch }) {
 
   const geoRes = await fetch(base + '/neighbourhoods.geojson');
@@ -142,6 +142,10 @@ console.log('Chart data:', overallRoomTypeData);
 
 const touristRatingData = aggregateAverageRating(detailed_data_rows);
 
+
+// top 3 neighborhoods
+const top3Neighborhoods = getTopNeighborhoods(detailed_data_rows, 3);
+console.log(top3Neighborhoods)
 return {
     geojson,
     availableStays,

@@ -8,6 +8,7 @@
   import HorizontalBarChart from "$lib/charts/HorizontalBarChart.svelte";
   import BubbleChart from "$lib/charts/BubbleChart.svelte";
   import ChloroplethMap from "$lib/charts/ChloroplethMap.svelte";
+  
   type PageData = {
     geojson: any;
     availableStays: number;
@@ -32,27 +33,23 @@
 <section class="kpi-grid">
   <div class="bg-white p-5 rounded shadow">
     <SummaryTiles
-      value={data.availableStays}
+    overviewValue={data.availableStays}
       label={totalStaysLabel}
-      subtext={totalStaysSubtext}
     />
   </div>
   <div class="bg-white p-5 rounded shadow">
     <SummaryTiles
-      value={data.averagePriceRounded}
-      label="Average Price per night"
-      subtext={averagePriceSubtext}
-    />
+    overviewValue={data.averagePriceRounded}
+      label="Average Price per night"    />
   </div>
   <div class="bg-white p-5 rounded shadow">
     <DonutChart summaryData={data.superhostCounts} />
   </div>
   <div class="bg-white p-5 rounded shadow">
     <SummaryTiles
-      value={data.averageRatingRounded}
+    overviewValue={data.averageRatingRounded}
       label="Average Rating"
-      subtext={averageRatingSubtext}
-    />
+          />
   </div>
   <div class="bg-white p-5 rounded shadow">
     <AveragePrice
@@ -63,9 +60,8 @@
   </div>
 </section>
 
-<section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-  <!-- Left: Map  -->
-  <div class="bg-white p-4 rounded shadow">
+<section class="dashboard-row">
+  <div class="map-container legend-container">
     <h2 class="text-lg font-semibold mb-2">Rental Distribution Map</h2>
     <ChloroplethMap
       geojson={data.geojson}
@@ -80,6 +76,24 @@
       unit="/5"
       tooltipFormatter={(v) => v.toFixed(2)}
        />
+  </div>
+  <div class="chart-container legend-container">
+    <h2 class="text-lg font-semibold mb-2">Room Type Distribution</h2>
+    <HorizontalBarChart
+      data={data.overallRoomTypeData}
+      labelField="label"
+      overallField="overall"
+    />
+  </div>
+  <div class="chart-container legend-container">
+    <h2 class="text-lg font-semibold mb-2">Chart 2 here</h2>
+  </div>
+</section>
+
+
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <!-- Left: Map  -->
+  <div class="bg-white p-4 rounded shadow">
     <!-- <Map geojson={data.geojson} /> -->
   </div>
 
@@ -98,12 +112,6 @@
       />
     </div>
     <div class="bg-white p-4 rounded shadow">
-      <h2 class="text-lg font-semibold mb-2">Room Type Distribution</h2>
-      <HorizontalBarChart
-        data={data.overallRoomTypeData}
-        labelField="label"
-        overallField="overall"
-      />
     </div>
   </div>
 </section>

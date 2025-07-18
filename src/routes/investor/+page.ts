@@ -4,6 +4,10 @@ import { base } from '$app/paths';
 import {calculateOverallOccupancyRate, groupAverageRevenueByNeighborhood} from '$lib/utils/aggregate';
 import { prepareBubbleChart } from '$lib/utils/prepareBubbleChart';
 import { aggregatePropertyType } from '$lib/utils/aggregate';
+import { selectedNeighborhood } from '$lib/stores/selectedNeighborhood';
+import { onDestroy } from 'svelte';
+
+let neighborhood: string | null = null;
 
 export const load: PageLoad =  async function load({ fetch }) {
 
@@ -127,7 +131,6 @@ const averageMinNights = minNightsArray.length
   ? minNightsArray.reduce((sum, val) => sum + val, 0) / minNightsArray.length
   : 0;
 
-// Round to 2 decimals
 const averageMinNightsRounded = averageMinNights.toFixed(2);
 const averageOccupancyRateRounded = calculateOverallOccupancyRate(detailed_data);
 
@@ -140,11 +143,10 @@ for (const row of detailed_data) {
   priceStr = priceStr.replace(/[^0-9.]/g, '');
   const price = parseFloat(priceStr);
 
-  const nightsAvailable = parseInt(row['availability_365'] || '0', 10);
-  const occupancyRate = nightsAvailable / 365;
-
-  if (!isNaN(price) && !isNaN(nightsAvailable)) {
-    const estimatedRevenue = occupancyRate * price * nightsAvailable;
+  const nightsOccupied = parseInt(row['estimated_occupancy_l365d'] || '0', 10);
+  
+  if (!isNaN(price) && !isNaN(nightsOccupied)) {
+    const estimatedRevenue =  price * nightsOccupied;
     revenueSum += estimatedRevenue;
     listingCount += 1;
   }
@@ -158,8 +160,6 @@ const avgRevenueByNeighborhood = groupAverageRevenueByNeighborhood(detailed_data
 
 const bubbleData = prepareBubbleChart(detailed_data_rows, 'neighbourhood_cleansed', 'estimated_occupancy_l365d', 'review_scores_rating');
 
-const overallPropertyTypeData = aggregatePropertyType(detailed_data_rows); // if selected neighborhood needed, pass it in too
-//console.log("Property types -" ,overallPropertyTypeData)
   return {
     geojson,
    licenseSummary,
@@ -170,7 +170,7 @@ const overallPropertyTypeData = aggregatePropertyType(detailed_data_rows); // if
    avgEstimatedRevenueRounded,
    avgRevenueByNeighborhood,
    bubbleData,
-   overallPropertyTypeData
+   detailed_data_rows
   };
 
 }
