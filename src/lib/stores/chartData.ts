@@ -9,7 +9,7 @@ export const detailedRows = writable<any[]>([]);
 export const propertyTypeData = derived(
   [detailedRows, selectedNeighborhood],
   ([$rows, $selectedNeighborhood]) => {
-    console.log("Aggregating property type with:", $selectedNeighborhood);
+    // console.log("Aggregating property type with:", $selectedNeighborhood);
     return aggregatePropertyType($rows, $selectedNeighborhood);
   }
 );
@@ -17,7 +17,7 @@ export const propertyTypeData = derived(
 export const roomTypeData = derived(
   [detailedRows, selectedNeighborhood],
   ([$rows, $selectedNeighborhood]) => {
-    console.log("Aggregating property type with:", $selectedNeighborhood);
+    // console.log("Aggregating room type with:", $selectedNeighborhood);
     return aggregateRoomType($rows, $selectedNeighborhood);
   }
 );

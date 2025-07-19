@@ -1,7 +1,8 @@
 import type { PageLoad } from './$types';
 import Papa from 'papaparse';
 import { base } from '$app/paths';
-import { prepareBubbleChart } from '$lib/utils/prepareBubbleChart';
+import { prepareBubbleChart} from '$lib/utils/prepareBubbleChart';
+import {getAvailabilityHistogramDataByNeighborhood} from '$lib/utils/prepareHistogram';
 import { aggregateRoomType, aggregateAverageRating, getTopNeighborhoods } from '$lib/utils/aggregate';
 export const load: PageLoad =  async function load({ fetch }) {
 
@@ -125,11 +126,9 @@ export const load: PageLoad =  async function load({ fetch }) {
   const minPrice = pricesPerDay.length ? Math.min(...pricesPerDay) : 0;
   const maxPrice = pricesPerDay.length ? Math.max(...pricesPerDay) : 0;
     
-console.log("averagePricePerDayRounded", averagePricePerDayRounded)
-console.log("minPrice", minPrice)
-console.log("maxPrice", maxPrice)
-
-
+// console.log("averagePricePerDayRounded", averagePricePerDayRounded)
+// console.log("minPrice", minPrice)
+// console.log("maxPrice", maxPrice)
 
   //Average Ratings
   const ratings : number[] = detailed_data.map(detailed_data_rows =>     
@@ -147,18 +146,24 @@ console.log("maxPrice", maxPrice)
 
 // Popularity of neighborhoods based on price, rating, and no. of listings(bubble size)
 const bubbleData = prepareBubbleChart(detailed_data_rows, 'neighbourhood_cleansed', 'price', 'review_scores_rating');
-console.log("Bubble data length - ",bubbleData.length);
+//console.log("Bubble data length - ",bubbleData.length);
 
 // room type distribution
 const overallRoomTypeData = aggregateRoomType(detailed_data_rows); // if selected neighborhood needed, pass it in too
-console.log('Chart data:', overallRoomTypeData);
+//console.log('Chart data:', overallRoomTypeData);
 
 const touristRatingData = aggregateAverageRating(detailed_data_rows);
-
 
 // top 3 neighborhoods
 const top3Neighborhoods = getTopNeighborhoods(detailed_data_rows, 3);
 console.log(top3Neighborhoods)
+
+//Average Availability for 365
+const binnedDataOverall = getAvailabilityHistogramDataByNeighborhood(detailed_data_rows);
+
+console.log(binnedDataOverall.length); // should be > 0
+console.log(binnedDataOverall[0]);     // should include availability_365
+
 return {
     geojson,
     availableStays,
@@ -171,7 +176,8 @@ return {
    bubbleData,
    overallRoomTypeData,
    touristRatingData,
-   detailed_data_rows
+   detailed_data_rows,
+   binnedDataOverall
   };
 
 }

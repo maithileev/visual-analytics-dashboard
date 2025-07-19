@@ -12,7 +12,8 @@
   import { detailedRows } from "$lib/stores/chartData";
   import { selectedNeighborhood } from "$lib/stores/selectedNeighborhood";
   import { roomTypeData } from "$lib/stores/chartData";
-
+  import {getAvailabilityHistogramDataByNeighborhood} from '$lib/utils/prepareHistogram';
+  import HistogramChart from "$lib/charts/HistogramChart.svelte";
   type PageData = {
     geojson: any;
     availableStays: number;
@@ -26,12 +27,14 @@
     overallRoomTypeData: { label: string; overall: number; compare?: number }[];
     touristRatingData: any;
     detailed_data_rows: any;
+    binnedDataOverall: any;
   };
 
   export let data: PageData;
   onMount(() => {
     selectedNeighborhood.set(null);
   });
+
   let compareField = null;
   $: compareField = $selectedNeighborhood ? "compare" : null;
 
@@ -178,6 +181,13 @@ $: if ($selectedNeighborhood) {
 }
 
 
+//availability 
+let selectedData = []
+$: selectedData = $selectedNeighborhood
+    ? getAvailabilityHistogramDataByNeighborhood(data.detailed_data_rows, $selectedNeighborhood)
+    : null;
+
+console.log(data.binnedDataOverall);
 </script>
 
 <section class="kpi-grid">
@@ -249,7 +259,12 @@ $: if ($selectedNeighborhood) {
     />
   </div>
   <div class="chart-container legend-container">
-    <h2 class="text-lg font-semibold mb-2">Chart 2 here</h2>
+    <h2 class="text-lg font-semibold mb-2">Airbnb Rental Availability Overview </h2>
+    <HistogramChart 
+overallBinnedData={data.binnedDataOverall}
+selectedBinnedData={selectedData ?? []}
+/>
+
   </div>
 </section>
 
@@ -273,6 +288,7 @@ $: if ($selectedNeighborhood) {
         yLabel="Average Rating"
       />
     </div>
+    <div class="bg-white p-4 rounded shadow">
     <div class="bg-white p-4 rounded shadow"></div>
   </div>
 </section>

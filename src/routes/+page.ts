@@ -149,7 +149,7 @@ export const load: PageLoad =  async function load({ fetch }) {
     }
   )
   .filter(rating => !isNaN(rating));
-  console.log('Ratings',ratings[0-10]);
+  // console.log('Ratings',ratings[0-10]);
 
   const averageRating = ratings.length
   ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
