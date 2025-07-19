@@ -5,7 +5,6 @@ import {calculateOverallOccupancyRate, groupAverageRevenueByNeighborhood} from '
 import { prepareBubbleChart } from '$lib/utils/prepareBubbleChart';
 import { aggregatePropertyType } from '$lib/utils/aggregate';
 import { selectedNeighborhood } from '$lib/stores/selectedNeighborhood';
-import { onDestroy } from 'svelte';
 
 let neighborhood: string | null = null;
 

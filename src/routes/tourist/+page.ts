@@ -33,7 +33,7 @@ export const load: PageLoad =  async function load({ fetch }) {
   const detailed_data_rows = detailed_parsed.data as any[];
 
   //Available listings availability_365 > 0
-  const availableStays = data.filter(row => {
+  const availableStays = detailed_data.filter(row => {
     const value = parseInt(row['availability_365'] ?? '0', 10);
     return value > 0;
   }).length;
@@ -94,29 +94,42 @@ export const load: PageLoad =  async function load({ fetch }) {
     'Not Instant bookable': instantBookableCountsRaw['False']
   };
 
+  const PRICE_THRESHOLD = 20;
+  const MAX_MIN_NIGHTS = 180; // example cap to exclude long-term rentals
+  
+  const pricesPerDay: number[] = detailed_data
+    .map(row => {
+      let priceStr = row['price']?.trim() || '0';
+      priceStr = priceStr.replace(/[^0-9.]/g, '');
+      const price = parseFloat(priceStr);
+  
+      const minNights = parseInt(row['minimum_nights'] || '1');
+  
+      if (
+        !isFinite(price) || price <= 0 ||
+        !isFinite(minNights) || minNights <= 0 ||
+        price < PRICE_THRESHOLD ||
+        minNights > MAX_MIN_NIGHTS // Exclude long-term rentals
+      ) {
+        return null;
+      }
+  
+      return price;  // <-- Use price as-is, since it's per night
+    })
+    .filter(p => p !== null) as number[];
+  
+  const totalPricePerDay = pricesPerDay.reduce((sum, p) => sum + p, 0);
+  const averagePricePerDay = pricesPerDay.length ? totalPricePerDay / pricesPerDay.length : 0;
+  const averagePricePerDayRounded = averagePricePerDay.toFixed(2);
+  
+  const minPrice = pricesPerDay.length ? Math.min(...pricesPerDay) : 0;
+  const maxPrice = pricesPerDay.length ? Math.max(...pricesPerDay) : 0;
+    
+console.log("averagePricePerDayRounded", averagePricePerDayRounded)
+console.log("minPrice", minPrice)
+console.log("maxPrice", maxPrice)
 
-  //Average Price
-  const prices: number[] = detailed_data
-  .map(detailed_data_rows => {
-    let priceStr = detailed_data_rows['price']?.trim() || '0';
-    priceStr = priceStr.replace(/[^0-9.]/g, '');
-    return parseFloat(priceStr);
-  })
-  .filter(price => !isNaN(price) && price > 0);
 
-  const totalPrice = prices.reduce((sum, p) => sum + p, 0);
-  const averagePrice = prices.length ? (totalPrice / rows.length) : 0;
-
-  const sortedPricesDesc = prices.sort((a, b) => b - a);
-  // Round to 2 decimals
-  const averagePriceRounded = averagePrice.toFixed(2);
-
-  //Min and Max price range
-  const minPrice = prices.length ? Math.min(...prices) : 0;
-  const maxPrice = prices.length ? Math.max(...prices) : 0;
-
-  console.log('Cleaned price values:', prices.slice(0, 10));
-  console.log('Min:', minPrice, 'Max:', maxPrice);
 
   //Average Ratings
   const ratings : number[] = detailed_data.map(detailed_data_rows =>     
@@ -149,7 +162,7 @@ console.log(top3Neighborhoods)
 return {
     geojson,
     availableStays,
-    averagePriceRounded,
+    averagePricePerDayRounded,
     minPrice,
     maxPrice,
    averageRatingRounded,
@@ -157,7 +170,8 @@ return {
    instantBookableCounts,
    bubbleData,
    overallRoomTypeData,
-   touristRatingData
+   touristRatingData,
+   detailed_data_rows
   };
 
 }

@@ -1,7 +1,6 @@
 
 <script lang="ts">
     import { currentTab } from '$lib/stores';
-    import AveragePrice from '$lib/components/AveragePrice.svelte';
     import SummaryTiles from '$lib/components/SummaryTiles.svelte';
     import Map from '$lib/components/Map.svelte';
     import type { PageData } from './$types';
@@ -30,94 +29,95 @@
     }
   
     export let data : PageData
-    
-    
     onMount(() => {
     detailedRows.set(data.detailed_data_rows); // ← inject the raw data only once
+    selectedNeighborhood.set(null);
     });
 
     //for horizontal bar chaart
     let compareField = null;
     $: compareField = $selectedNeighborhood ? 'compare' : null;
 
-    //KPIS
-    // Reviews 
-    $: selectedNeighborhoodReviews = $selectedNeighborhood
-    ? $detailedRows
-      .filter(row =>
-        (row['neighbourhood_cleansed']?.trim().toLowerCase() || '') === $selectedNeighborhood.trim().toLowerCase()
-      )
-      .map(row => parseFloat(row['reviews_per_month'] || '0'))
-      .filter(n => !isNaN(n) && n > 0)
-    : null;
+//     //KPIS
+//     // Reviews 
+    // $: selectedNeighborhoodReviews = $selectedNeighborhood
+    // ? $detailedRows
+    //   .filter(row =>
+    //     (row['neighbourhood_cleansed']?.trim().toLowerCase() || '') === $selectedNeighborhood.trim().toLowerCase()
+    //   )
+    //   .map(row => parseFloat(row['reviews_per_month'] || '0'))
+    //   .filter(n => !isNaN(n) && n > 0)
+    // : null;
 
-    $: selectedAverageReviewsPerMonth =
-    selectedNeighborhoodReviews && selectedNeighborhoodReviews.length
-    ? + (
-        selectedNeighborhoodReviews.reduce((sum, val) => sum + val, 0) /
-        selectedNeighborhoodReviews.length
-      ).toFixed(2)
-    : null;
+    // $: selectedAverageReviewsPerMonth =
+    // selectedNeighborhoodReviews && selectedNeighborhoodReviews.length
+    // ? + (
+    //     selectedNeighborhoodReviews.reduce((sum, val) => sum + val, 0) /
+    //     selectedNeighborhoodReviews.length
+    //   ).toFixed(2)
+    // : null;
 
-    //Min nights
-$: selectedNeighborhoodMinNights = $selectedNeighborhood
-  ? $detailedRows
-      .filter(row =>
-        (row['neighbourhood_cleansed']?.trim().toLowerCase() || '') ===
-        $selectedNeighborhood.trim().toLowerCase()
-      )
-      .map(row => {
-        const val = row['minimum_nights']?.trim() || '0';
-        const parsedVal = parseInt(val, 10);
-        return isNaN(parsedVal) ? 0 : parsedVal;
-      })
-      .filter(val => val > 0)
-  : null;
+//     console.log("geojson",data.geojson);
 
-$: selectedAverageMinNights =
-  selectedNeighborhoodMinNights && selectedNeighborhoodMinNights.length
-    ? (selectedNeighborhoodMinNights.reduce((sum, val) => sum + val, 0) /
-      selectedNeighborhoodMinNights.length).toFixed(2)
-    : null;
+//     //Min nights
+// $: selectedNeighborhoodMinNights = $selectedNeighborhood
+//   ? $detailedRows
+//       .filter(row =>
+//         (row['neighbourhood_cleansed']?.trim().toLowerCase() || '') ===
+//         $selectedNeighborhood.trim().toLowerCase()
+//       )
+//       .map(row => {
+//         const val = row['minimum_nights']?.trim() || '0';
+//         const parsedVal = parseInt(val, 10);
+//         return isNaN(parsedVal) ? 0 : parsedVal;
+//       })
+//       .filter(val => val > 0)
+//   : null;
 
-    //Average revenue 
-    $: selectedNeighborhoodRevenueData = $selectedNeighborhood
-  ? $detailedRows.filter(row =>
-      (row['neighbourhood_cleansed']?.trim().toLowerCase() || '') ===
-      $selectedNeighborhood.trim().toLowerCase()
-    )
-  : null;
+// $: selectedAverageMinNights =
+//   selectedNeighborhoodMinNights && selectedNeighborhoodMinNights.length
+//     ? (selectedNeighborhoodMinNights.reduce((sum, val) => sum + val, 0) /
+//       selectedNeighborhoodMinNights.length).toFixed(2)
+//     : null;
 
-$: selectedNeighborhoodAverageEstimatedRevenue = selectedNeighborhoodRevenueData
-  ? (() => {
-      let revenueSum = 0;
-      let listingCount = 0;
+//     //Average revenue 
+//     $: selectedNeighborhoodRevenueData = $selectedNeighborhood
+//   ? $detailedRows.filter(row =>
+//       (row['neighbourhood_cleansed']?.trim().toLowerCase() || '') ===
+//       $selectedNeighborhood.trim().toLowerCase()
+//     )
+//   : null;
 
-      for (const row of selectedNeighborhoodRevenueData) {
-        let priceStr = (row['price']?.trim() || '0').replace(/[^0-9.]/g, '');
-        const price = parseFloat(priceStr);
-        const nightsOccupied = parseInt(row['estimated_occupancy_l365d'] || '0', 10);
+// $: selectedNeighborhoodAverageEstimatedRevenue = selectedNeighborhoodRevenueData
+//   ? (() => {
+//       let revenueSum = 0;
+//       let listingCount = 0;
 
-        if (!isNaN(price) && !isNaN(nightsOccupied)) {
-          revenueSum += price * nightsOccupied;
-          listingCount += 1;
-        }
-      }
+//       for (const row of selectedNeighborhoodRevenueData) {
+//         let priceStr = (row['price']?.trim() || '0').replace(/[^0-9.]/g, '');
+//         const price = parseFloat(priceStr);
+//         const nightsOccupied = parseInt(row['estimated_occupancy_l365d'] || '0', 10);
 
-      const avgEstimatedRevenue = listingCount > 0 ? revenueSum / listingCount : 0;
-      return +avgEstimatedRevenue.toFixed(2);  // Return number rounded to 2 decimals
-    })()
-  : null;
+//         if (!isNaN(price) && !isNaN(nightsOccupied)) {
+//           revenueSum += price * nightsOccupied;
+//           listingCount += 1;
+//         }
+//       }
 
-  //Occupancy Rate
-  // Filter rows belonging to the selected neighborhood
+//       const avgEstimatedRevenue = listingCount > 0 ? revenueSum / listingCount : 0;
+//       return +avgEstimatedRevenue.toFixed(2);  // Return number rounded to 2 decimals
+//     })()
+//   : null;
+
+//   //Occupancy Rate
+//   // Filter rows belonging to the selected neighborhood
 $: selectedNeighborhoodRowsForOccupancy = $selectedNeighborhood
   ? $detailedRows.filter(row =>
       (row['neighbourhood_cleansed']?.trim().toLowerCase() || '') === $selectedNeighborhood.trim().toLowerCase()
     )
   : null;
 
-// Compute occupancy rate in %
+// // Compute occupancy rate in %
 $: selectedNeighborhoodOccupancyRate = selectedNeighborhoodRowsForOccupancy && selectedNeighborhoodRowsForOccupancy.length
   ? (() => {
       let totalOccupiedDays = 0;
@@ -156,21 +156,102 @@ function getLicenseCategory(value: string | undefined): string {
   }
 
   // Reactive statement to compute license summary for selected region/neighborhood
-  $: selectedRegionLicenseSummary = $selectedNeighborhood
-    ? (() => {
-        const filteredRows = $detailedRows.filter(row => 
-          (row['neighbourhood_cleansed']?.trim().toLowerCase() || '') === $selectedNeighborhood.trim().toLowerCase()
-        );
-        const counts: Record<string, number> = {};
-        filteredRows.forEach(row => {
-          const category = getLicenseCategory(row['license']);
-          counts[category] = (counts[category] || 0) + 1;
-        });
-        return counts;
-      })()
-    : null;
+  // $: selectedRegionLicenseSummary = $selectedNeighborhood
+  //   ? (() => {
+  //       const filteredRows = $detailedRows.filter(row => 
+  //         (row['neighbourhood_cleansed']?.trim().toLowerCase() || '') === $selectedNeighborhood.trim().toLowerCase()
+  //       );
+  //       const counts: Record<string, number> = {};
+  //       filteredRows.forEach(row => {
+  //         const category = getLicenseCategory(row['license']);
+  //         counts[category] = (counts[category] || 0) + 1;
+  //       });
+  //       return counts;
+  //     })()
+  //   : null;
   
-    $: console.log('summaryData', selectedRegionLicenseSummary);
+//     $: console.log('summaryData', selectedRegionLicenseSummary);
+
+// Reviews
+$: selectedNeighborhoodReviews = $selectedNeighborhood && $detailedRows
+  ? $detailedRows
+      .filter(row =>
+        (row['neighbourhood_cleansed']?.trim().toLowerCase() || '') === $selectedNeighborhood.trim().toLowerCase()
+      )
+      .map(row => parseFloat(row['reviews_per_month'] || '0'))
+      .filter(n => !isNaN(n) && n > 0)
+  : null;
+
+  $: selectedAverageReviewsPerMonth =
+    selectedNeighborhoodReviews && selectedNeighborhoodReviews.length
+    ? + (
+        selectedNeighborhoodReviews.reduce((sum, val) => sum + val, 0) /
+        selectedNeighborhoodReviews.length
+      ).toFixed(2)
+    : null;
+
+// Min nights
+$: selectedNeighborhoodMinNights = $selectedNeighborhood && $detailedRows
+  ? $detailedRows
+      .filter(row =>
+        (row['neighbourhood_cleansed']?.trim().toLowerCase() || '') === $selectedNeighborhood.trim().toLowerCase()
+      )
+      .map(row => {
+        const val = row['minimum_nights']?.trim() || '0';
+        const parsedVal = parseInt(val, 10);
+        return isNaN(parsedVal) ? 0 : parsedVal;
+      })
+      .filter(val => val > 0)
+  : null;
+
+  $: selectedAverageMinNights =
+  selectedNeighborhoodMinNights && selectedNeighborhoodMinNights.length
+    ? (selectedNeighborhoodMinNights.reduce((sum, val) => sum + val, 0) /
+      selectedNeighborhoodMinNights.length).toFixed(2)
+    : null;
+
+// Average revenue data
+$: selectedNeighborhoodRevenueData = $selectedNeighborhood && $detailedRows
+  ? $detailedRows.filter(row =>
+      (row['neighbourhood_cleansed']?.trim().toLowerCase() || '') === $selectedNeighborhood.trim().toLowerCase()
+    )
+  : null;
+
+  $: selectedNeighborhoodAverageEstimatedRevenue = selectedNeighborhoodRevenueData
+  ? (() => {
+      let revenueSum = 0;
+      let listingCount = 0;
+
+      for (const row of selectedNeighborhoodRevenueData) {
+        let priceStr = (row['price']?.trim() || '0').replace(/[^0-9.]/g, '');
+        const price = parseFloat(priceStr);
+        const nightsOccupied = parseInt(row['estimated_occupancy_l365d'] || '0', 10);
+
+        if (!isNaN(price) && !isNaN(nightsOccupied)) {
+          revenueSum += price * nightsOccupied;
+          listingCount += 1;
+        }
+      }
+
+      const avgEstimatedRevenue = listingCount > 0 ? revenueSum / listingCount : 0;
+      return +avgEstimatedRevenue.toFixed(2);  // Return number rounded to 2 decimals
+    })()
+  : null;
+
+// License summary
+$: selectedRegionLicenseSummary = $selectedNeighborhood && $detailedRows
+  ? (() => {
+      const filteredRows = $detailedRows.filter(row =>
+        (row['neighbourhood_cleansed']?.trim().toLowerCase() || '') === $selectedNeighborhood.trim().toLowerCase()
+      );
+      const counts: Record<string, number> = {};
+      filteredRows.forEach(row => {
+        const category = getLicenseCategory(row['license']);
+        counts[category] = (counts[category] || 0) + 1;
+      });
+      return counts;
+    })()
+  : null;
 
   </script>
   
@@ -212,17 +293,17 @@ function getLicenseCategory(value: string | undefined): string {
   <section class="dashboard-row">
     <div class="map-container legend-container">
       <h2 class="text-lg font-semibold mb-2">Annual Revenue Potential Across Neighborhoods</h2>
-        <ChloroplethMap geojson={data.geojson} values={data.avgRevenueByNeighborhood}       
+      <ChloroplethMap geojson={data.geojson}
+        values={data.avgRevenueByNeighborhood}       
         label="Average Revenue"
-        unit=""
+        unit="$"
         tooltipFormatter={(v) => v.toFixed(2)} 
         colorRange={["#e6f2f8",  // very light sky blue
         "#a8d0e6",  // light blue
         "#5ca7c8",  // medium blue
         "#2c6b8f",  // deep blue
         "#1b3e57"   // darkest navy blue
-        ]}
-        />
+        ]} />   
     </div>
     <div class="chart-container legend-container">
       <h2 class="text-lg font-semibold mb-2">Property Type Distribution</h2>
@@ -230,7 +311,7 @@ function getLicenseCategory(value: string | undefined): string {
         data={$propertyTypeData}
         labelField="label"
         overallField="overall"
-        compareField="{compareField}"/>
+        compareField={compareField}/>
     </div>
     <div class="chart-container legend-container">
       <h2 class="text-lg font-semibold mb-2">Chart 2 here</h2>

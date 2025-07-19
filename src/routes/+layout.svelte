@@ -4,6 +4,11 @@
     import { currentTab } from '$lib/stores';
     import { base } from '$app/paths';
     import { page } from '$app/stores';
+    import { selectedNeighborhood } from '$lib/stores/selectedNeighborhood';
+    $: {
+    // Reset neighborhood selection on route change
+    selectedNeighborhood.set(null);
+  }
 
   </script>
   

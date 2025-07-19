@@ -110,36 +110,72 @@ export function simplifyPropertyType(label: string): string {
   return 'Other';
 }
 
-export function aggregatePropertyType(
-  rows: any[],
-  selectedNeighborhood: string | null = null)  {
-    const typeMap = new Map<string, { overall: number; compare: number }>();
+// export function aggregatePropertyType(
+//   rows: any[],
+//   selectedNeighborhood: string | null = null)  {
+//     const typeMap = new Map<string, { overall: number; compare: number }>();
 
-    rows.forEach((row) => {
-      const rawType = row.property_type;
-      const neighborhood = row.neighbourhood_cleansed;
+//     rows.forEach((row) => {
+//       const rawType = row.property_type;
+//       const neighborhood = row.neighbourhood_cleansed;
   
-      if (!rawType) return;
+//       if (!rawType) return;
   
-      const simplifiedType = simplifyPropertyType(rawType);
+//       const simplifiedType = simplifyPropertyType(rawType);
   
-      if (!typeMap.has(simplifiedType)) {
-        typeMap.set(simplifiedType, { overall: 0, compare: 0 });
-      }
+//       if (!typeMap.has(simplifiedType)) {
+//         typeMap.set(simplifiedType, { overall: 0, compare: 0 });
+//       }
   
-      const entry = typeMap.get(simplifiedType)!;
-      entry.overall += 1;
+//       const entry = typeMap.get(simplifiedType)!;
+//       entry.overall += 1;
   
-      if (selectedNeighborhood && neighborhood === selectedNeighborhood) {
-        entry.compare += 1;
-      }
-    });
+//       if (selectedNeighborhood && neighborhood === selectedNeighborhood) {
+//         entry.compare += 1;
+//       }
+//     });
   
-    return Array.from(typeMap.entries()).map(([label, { overall, compare }]) => ({
-      label,
-      overall,
-      ...(selectedNeighborhood ? { compare } : {}),
-    }));  
+//     return Array.from(typeMap.entries()).map(([label, { overall, compare }]) => ({
+//       label,
+//       overall,
+//       ...(selectedNeighborhood ? { compare } : {}),
+//     }));  
+// }
+
+
+export function aggregatePropertyType(
+  rows: any[] = [],
+  selectedNeighborhood: string | null = null
+) {
+  const typeMap = new Map<string, { overall: number; compare: number }>();
+
+  if (!Array.isArray(rows)) return [];
+
+  rows.forEach((row) => {
+    const rawType = row.property_type;
+    const neighborhood = row.neighbourhood_cleansed;
+
+    if (!rawType) return;
+
+    const simplifiedType = simplifyPropertyType(rawType);
+
+    if (!typeMap.has(simplifiedType)) {
+      typeMap.set(simplifiedType, { overall: 0, compare: 0 });
+    }
+
+    const entry = typeMap.get(simplifiedType)!;
+    entry.overall += 1;
+
+    if (selectedNeighborhood && neighborhood === selectedNeighborhood) {
+      entry.compare += 1;
+    }
+  });
+
+  return Array.from(typeMap.entries()).map(([label, { overall, compare }]) => ({
+    label,
+    overall,
+    ...(selectedNeighborhood ? { compare } : {}),
+  }));
 }
 
 export function aggregateAverageRating(rows: any[]) {

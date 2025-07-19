@@ -39,11 +39,22 @@ body {
     overflow-y: auto;
   }
   
-  header, footer {
-    background-color: #2563eb;
+  header {
+    background-color: #1e40af;
     color: white;
-    padding: 1rem 2rem;
+    padding: 0.5rem 2rem; /* as before */
     flex-shrink: 0;
+    line-height: 1.5rem;
+    font-size: 0.9rem;
+  }
+  
+  footer {
+    background-color: #1e40af;
+    color: white;
+    padding: 0.25rem 2rem; /* less vertical padding for minimal height */
+    flex-shrink: 0;
+    line-height: 1.2rem; /* tighter line height */
+    font-size: 0.8rem; /* smaller font */
   }
   
   .filters {

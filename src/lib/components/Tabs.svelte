@@ -1,6 +1,10 @@
 <script>
     import { currentTab } from '$lib/stores';
-  </script>
+    import { selectedNeighborhood } from '$lib/stores/selectedNeighborhood';
+    $: if ($currentTab) {
+    selectedNeighborhood.set(null);
+  }
+</script>
   
   <nav class="tabs">
     <button
