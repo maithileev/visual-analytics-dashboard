@@ -5,7 +5,7 @@ import {calculateOverallOccupancyRate, groupAverageRevenueByNeighborhood} from '
 import { prepareBubbleChart } from '$lib/utils/prepareBubbleChart';
 import { aggregatePropertyType } from '$lib/utils/aggregate';
 import { selectedNeighborhood } from '$lib/stores/selectedNeighborhood';
-
+import {preprocessSentimentData} from '$lib/utils/mapDataHelpers';
 let neighborhood: string | null = null;
 
 export const load: PageLoad =  async function load({ fetch }) {
@@ -15,28 +15,41 @@ export const load: PageLoad =  async function load({ fetch }) {
 
   const summary = await fetch(base + '/listings-summary.csv');
   const listings_summary = await summary.text();
-
-  const details = await fetch(base + '/listings-detailed.csv')
-  const listings_detailed = await details.text();
   const parsed = Papa.parse(listings_summary, {
     header: true,
     delimiter: ';',
     skipEmptyLines: true
   });
+  const data = parsed.data as Record<string, string>[];
+  const rows = parsed.data as any[];
 
+  const sentimentMapData = await fetch(base + '/sentiment-by-neighbourhood.csv')
+  const sentimentMapDataText = await sentimentMapData.text();
+  const sentiment_map = Papa.parse(sentimentMapDataText, {
+    header: true,
+    delimiter: ',',
+    skipEmptyLines: true
+  });
+  const sentimentData = sentiment_map.data as Record<string, string>[];
+  const sentimentRows = sentiment_map.data as any[];
+  console.log("Sentiment data",sentimentRows);
+
+  const processedSentimentData = preprocessSentimentData(sentimentRows);
+  console.log("Sentiment data",processedSentimentData);
+
+
+  const details = await fetch(base + '/listings-detailed.csv')
+  const listings_detailed = await details.text();
   const detailed_parsed = Papa.parse(listings_detailed, {
     header: true,
     delimiter: ';',
     skipEmptyLines: true
   });
-  console.log(Object.keys(parsed.data[0]));
-  console.log(Object.keys(detailed_parsed.data[0]));
-
-  const data = parsed.data as Record<string, string>[];
-  const rows = parsed.data as any[];
-
   const detailed_data = detailed_parsed.data as Record<string, string>[];
   const detailed_data_rows = detailed_parsed.data as any[];
+
+  console.log(Object.keys(parsed.data[0]));
+  console.log(Object.keys(detailed_parsed.data[0]));
 
   //License data
   function getLicenseCategory(value: string | undefined): string {
@@ -107,8 +120,6 @@ export const load: PageLoad =  async function load({ fetch }) {
     'Not Instant bookable': instantBookableCountsRaw['False']
   };
 
-  console.log(instantBookableCounts)
-
   const reviewsPerMonth: number[] = data
   .map(row => parseFloat(row['reviews_per_month'] || '0'))
   .filter(n => !isNaN(n) && n > 0);
@@ -169,7 +180,8 @@ const bubbleData = prepareBubbleChart(detailed_data_rows, 'neighbourhood_cleanse
    avgEstimatedRevenueRounded,
    avgRevenueByNeighborhood,
    bubbleData,
-   detailed_data_rows
+   detailed_data_rows,
+   processedSentimentData
   };
 
 }

@@ -13,7 +13,7 @@
     import { propertyTypeData } from '$lib/stores/chartData';
     import { selectedNeighborhood } from '$lib/stores/selectedNeighborhood';
     import { derived } from 'svelte/store';
-
+    import SentimentMap from '$lib/charts/SentimentMap.svelte'
 
     type PageData  = {
       geojson : any ;
@@ -26,6 +26,7 @@
       avgRevenueByNeighborhood: Record<string, number>;
       bubbleData : any;
       detailed_data_rows : any;
+      processedSentimentData : any;
     }
   
     export let data : PageData
@@ -33,6 +34,8 @@
     detailedRows.set(data.detailed_data_rows); // ← inject the raw data only once
     selectedNeighborhood.set(null);
     });
+
+    let showSentiment = false;
 
     //for horizontal bar chaart
     let compareField = null;
@@ -292,7 +295,27 @@ $: selectedRegionLicenseSummary = $selectedNeighborhood && $detailedRows
   
   <section class="dashboard-row">
     <div class="map-container legend-container">
-      <h2 class="text-lg font-semibold mb-2">Annual Revenue Potential Across Neighborhoods</h2>
+      <div class="flex items-center justify-between mb-2 w-full">
+        <h2 class="whitespace-nowrap overflow-hidden text-ellipsis max-w-[80%]">
+          {showSentiment ? 'Sentiment Across Neighborhoods' : 'Annual Revenue Potential Across Neighborhoods'}
+        </h2>
+        <button 
+          on:click={() => showSentiment = !showSentiment} 
+          class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+        >
+          {showSentiment ? 'View Revenue' : 'View Sentiment'}
+        </button>
+      </div>
+      
+<!--       
+        <button on:click={() => showSentiment = !showSentiment} class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+          {showSentiment ? 'Show Revenue Map' : 'Show Sentiment Heatmap'}
+        </button> -->
+      {#if showSentiment}
+      <!-- <h2 class="text-lg font-semibold mb-2">Sentiment Across Neighborhoods</h2> -->
+      <SentimentMap geojson={data.geojson} sentimentData={data.processedSentimentData} />
+      {:else}
+      <!-- <h2 class="text-lg font-semibold mb-2">Annual Revenue Potential Across Neighborhoods</h2> -->
       <ChloroplethMap geojson={data.geojson}
         values={data.avgRevenueByNeighborhood}       
         label="Average Revenue"
@@ -303,7 +326,8 @@ $: selectedRegionLicenseSummary = $selectedNeighborhood && $detailedRows
         "#5ca7c8",  // medium blue
         "#2c6b8f",  // deep blue
         "#1b3e57"   // darkest navy blue
-        ]} />   
+        ]} />  
+        {/if} 
     </div>
     <div class="chart-container legend-container">
       <h2 class="text-lg font-semibold mb-2">Property Type Distribution</h2>
