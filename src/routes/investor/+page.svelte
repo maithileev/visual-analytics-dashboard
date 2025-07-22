@@ -14,6 +14,9 @@
     import { selectedNeighborhood } from '$lib/stores/selectedNeighborhood';
     import { derived } from 'svelte/store';
     import SentimentMap from '$lib/charts/SentimentMap.svelte'
+    import { aggregateRadarMetrics, normalizeRadarMetrics, findMaxValues } from '$lib/utils/radarNormalization';
+    import type { RadarInputListing } from '$lib/utils/prepareRadarData'
+    import RadarChart from '$lib/charts/RadarChart.svelte';
 
     type PageData  = {
       geojson : any ;
@@ -27,6 +30,8 @@
       bubbleData : any;
       detailed_data_rows : any;
       processedSentimentData : any;
+      radarListings : any;
+      overallRadarData : any;
     }
   
     export let data : PageData
@@ -241,6 +246,45 @@ $: selectedNeighborhoodRevenueData = $selectedNeighborhood && $detailedRows
     })()
   : null;
 
+//ROI
+// 1. filter listings based on selectedNeighborhood (safe string checks)
+$: filteredListings = $selectedNeighborhood
+  ? data.radarListings.filter((l) => {
+      const listingNeighborhood = typeof l.neighborhood === 'string' ? l.neighborhood.trim().toLowerCase() : '';
+      const selNeighborhood = typeof $selectedNeighborhood === 'string' ? $selectedNeighborhood.trim().toLowerCase() : '';
+      return listingNeighborhood === selNeighborhood;
+    })
+  : data.radarListings;
+
+// 2. aggregate raw metrics on filtered listings
+$: neighborhoodRawMetrics = aggregateRadarMetrics(filteredListings);
+
+// 3. compute max values for normalization, fallback to overall maxValues
+$: neighborhoodMaxValues = filteredListings.length
+  ? findMaxValues(filteredListings)
+  : data.overallRadarData.maxValues;
+
+// 4. normalize metrics for neighborhood or null if none selected
+$: neighborhoodNormalized = $selectedNeighborhood && filteredListings.length > 0
+  ? normalizeRadarMetrics(neighborhoodRawMetrics, neighborhoodMaxValues)
+  : null;
+
+// let neighborhoodNormalized = {
+//     roi: 0.8,
+//     occupancyRate: 0.5,
+//     minNights: 0.6,
+//     reviewCount: 0.7,
+//     rating: 0.4
+//   };
+
+  $: {
+  console.log('Selected Neighborhood:', $selectedNeighborhood);
+  console.log('Filtered Listings count:', filteredListings.length);
+  console.log('Raw metrics:', neighborhoodRawMetrics);
+  console.log('Max values:', neighborhoodMaxValues);
+  console.log('Normalized:', neighborhoodNormalized);
+}
+
 // License summary
 $: selectedRegionLicenseSummary = $selectedNeighborhood && $detailedRows
   ? (() => {
@@ -306,16 +350,9 @@ $: selectedRegionLicenseSummary = $selectedNeighborhood && $detailedRows
           {showSentiment ? 'View Revenue' : 'View Sentiment'}
         </button>
       </div>
-      
-<!--       
-        <button on:click={() => showSentiment = !showSentiment} class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
-          {showSentiment ? 'Show Revenue Map' : 'Show Sentiment Heatmap'}
-        </button> -->
-      {#if showSentiment}
-      <!-- <h2 class="text-lg font-semibold mb-2">Sentiment Across Neighborhoods</h2> -->
+            {#if showSentiment}
       <SentimentMap geojson={data.geojson} sentimentData={data.processedSentimentData} />
       {:else}
-      <!-- <h2 class="text-lg font-semibold mb-2">Annual Revenue Potential Across Neighborhoods</h2> -->
       <ChloroplethMap geojson={data.geojson}
         values={data.avgRevenueByNeighborhood}       
         label="Average Revenue"
@@ -338,7 +375,11 @@ $: selectedRegionLicenseSummary = $selectedNeighborhood && $detailedRows
         compareField={compareField}/>
     </div>
     <div class="chart-container legend-container">
-      <h2 class="text-lg font-semibold mb-2">Chart 2 here</h2>
+      <h2 class="text-lg font-semibold mb-2">Neighborhood Performance & ROI Radar</h2>
+      <RadarChart overallData={data.overallRadarData.normalized} 
+      neighborhoodNormalized={neighborhoodNormalized} 
+      />
+
     </div>
   </section>
   
@@ -352,6 +393,7 @@ $: selectedRegionLicenseSummary = $selectedNeighborhood && $detailedRows
         yLabel="Average Rating"
             />
       </div>
+
   </section> 
   <div class="bg-white p-4 rounded shadow">
     <h2 class="text-lg font-semibold mb-2">Recommendations</h2>

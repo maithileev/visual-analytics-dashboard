@@ -1,3 +1,60 @@
+import { pricePerM2Lookup } from '$lib/utils/pricePerM2Lookup';
+
+const ANNUAL_EXPENSES = 2100; // $
+const AVERAGE_SIZE_M2 = 60;   // m²
+
+type AggregateResult = {
+  neighborhood: string | 'Overall';
+  avgAnnualRevenue: number;
+  avgPricePerM2: number;
+  avgPropertyPrice: number;
+  roi: number;
+  count: number;
+};
+
+export function aggregateROIFromRevenues(
+  revenues: number[],
+  selectedNeighborhood?: string | null
+): AggregateResult {
+  if (revenues.length === 0) {
+    return {
+      neighborhood: selectedNeighborhood ?? 'Overall',
+      avgAnnualRevenue: 0,
+      avgPricePerM2: 0,
+      avgPropertyPrice: 0,
+      roi: 0,
+      count: 0,
+    };
+  }
+
+  const totalRevenue = revenues.reduce((sum, r) => sum + r, 0);
+  const avgAnnualRevenue = totalRevenue / revenues.length;
+
+  // Look up average price per m²
+  let avgPricePerM2: number;
+  if (selectedNeighborhood) {
+    avgPricePerM2 = pricePerM2Lookup[selectedNeighborhood] ?? 0;
+  } else {
+    // Use overall average of all values in lookup
+    const allPrices = Object.values(pricePerM2Lookup);
+    avgPricePerM2 = allPrices.reduce((a, b) => a + b, 0) / allPrices.length;
+  }
+
+  const avgPropertyPrice = avgPricePerM2 * AVERAGE_SIZE_M2;
+
+  const roi = avgPropertyPrice > 0
+    ? ((avgAnnualRevenue - ANNUAL_EXPENSES) / avgPropertyPrice) * 100
+    : 0;
+
+  return {
+    neighborhood: selectedNeighborhood ?? 'Overall',
+    avgAnnualRevenue,
+    avgPricePerM2,
+    avgPropertyPrice,
+    roi,
+    count: revenues.length,
+  };
+}
 
 export function groupAverageRevenueByNeighborhood(data: any[]) {
   const revenueMap = new Map<string, { total: number; count: number }>();
@@ -253,4 +310,49 @@ export function getTopNeighborhoods(data: any[], topN: number = 3) {
   neighborhoodArray.sort((a, b) => b.avgRating - a.avgRating);
 
   return neighborhoodArray.slice(0, topN);
+}
+
+//Aggregation Metrics for ROI
+type Listing = {
+  roi: number;                          // computed ROI %
+  estimated_occupancy_l365d: number;   // days occupied in last 365
+  minimum_nights: number;
+  number_of_reviews: number;
+  review_scores_rating: number;
+};
+
+type RawMetrics = {
+  roi: number;
+  occupancyDays: number;
+  minNights: number;
+  reviewCount: number;
+  rating: number;
+};
+
+type MaxValues = {
+  maxMinNights: number;
+  maxReviewCount: number;
+};
+
+
+export function aggregateMetrics(listings: Listing[]): RawMetrics {
+  const count = listings.length;
+  if (count === 0) {
+    return { roi: 0, occupancyDays: 0, minNights: 0, reviewCount: 0, rating: 0 };
+  }
+
+  return {
+    roi: listings.reduce((sum, l) => sum + l.roi, 0) / count,
+    occupancyDays: listings.reduce((sum, l) => sum + l.estimated_occupancy_l365d, 0) / count,
+    minNights: listings.reduce((sum, l) => sum + l.minimum_nights, 0) / count,
+    reviewCount: listings.reduce((sum, l) => sum + l.number_of_reviews, 0) / count,
+    rating: listings.reduce((sum, l) => sum + l.review_scores_rating, 0) / count,
+  };
+}
+
+export function getMaxValues(allListings: Listing[]): MaxValues {
+  return {
+    maxMinNights: allListings.reduce((max, l) => Math.max(max, l.minimum_nights), 0),
+    maxReviewCount: allListings.reduce((max, l) => Math.max(max, l.number_of_reviews), 0),
+  };
 }

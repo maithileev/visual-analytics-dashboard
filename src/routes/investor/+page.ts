@@ -3,9 +3,12 @@ import Papa from 'papaparse';
 import { base } from '$app/paths';
 import {calculateOverallOccupancyRate, groupAverageRevenueByNeighborhood} from '$lib/utils/aggregate';
 import { prepareBubbleChart } from '$lib/utils/prepareBubbleChart';
-import { aggregatePropertyType } from '$lib/utils/aggregate';
+import { aggregatePropertyType, aggregateROIFromRevenues, getMaxValues, aggregateMetrics} from '$lib/utils/aggregate';
 import { selectedNeighborhood } from '$lib/stores/selectedNeighborhood';
 import {preprocessSentimentData} from '$lib/utils/mapDataHelpers';
+import { extractRadarData } from '$lib/utils/prepareRadarData';
+import {computeOverallRadarMetrics} from '$lib/utils/radarNormalization'
+
 let neighborhood: string | null = null;
 
 export const load: PageLoad =  async function load({ fetch }) {
@@ -170,7 +173,13 @@ const avgRevenueByNeighborhood = groupAverageRevenueByNeighborhood(detailed_data
 
 const bubbleData = prepareBubbleChart(detailed_data_rows, 'neighbourhood_cleansed', 'estimated_occupancy_l365d', 'review_scores_rating');
 
-  return {
+//ROI
+const radarListings = extractRadarData(detailed_data_rows);
+console.log('Extracted count:', radarListings.length); // ~10k
+
+const overallRadarData = computeOverallRadarMetrics(radarListings);
+console.log('Aggregated:', overallRadarData); // single object with averages
+return {
     geojson,
    licenseSummary,
    instantBookableCounts,
@@ -181,7 +190,9 @@ const bubbleData = prepareBubbleChart(detailed_data_rows, 'neighbourhood_cleanse
    avgRevenueByNeighborhood,
    bubbleData,
    detailed_data_rows,
-   processedSentimentData
+   processedSentimentData,
+   radarListings,
+   overallRadarData
   };
 
 }
