@@ -161,7 +161,7 @@ export function simplifyPropertyType(label: string): string {
     return 'Hotel / Hostel';
   }
   if (l.includes('loft') || l.includes('tent') || l.includes('camper') || l.includes('boat') || l.includes('dome') || l.includes('houseboat') || l.includes('yurt') || l.includes('castle') ) {
-    return 'Unique / Alternative Stays';
+    return 'Unique Stays';
   }
 
   return 'Other';

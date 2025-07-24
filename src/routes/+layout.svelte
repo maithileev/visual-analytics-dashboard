@@ -18,7 +18,7 @@
     </header>
 
     <nav class="nav-tabs">
-      <a href="{base}/" class:selected={$page.url.pathname === base + '/'}>Overview</a>
+      <!-- <a href="{base}/" class:selected={$page.url.pathname === base + '/'}>Overview</a> -->
       <a href="{base}/tourist" class:selected={$page.url.pathname === base + '/tourist'}>Tourist</a>
       <a href="{base}/investor" class:selected={$page.url.pathname === base + '/investor'}>Investor</a>
     </nav>

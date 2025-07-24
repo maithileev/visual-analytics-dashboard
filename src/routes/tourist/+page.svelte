@@ -14,6 +14,11 @@
   import { roomTypeData } from "$lib/stores/chartData";
   import {getAvailabilityHistogramDataByNeighborhood} from '$lib/utils/prepareHistogram';
   import HistogramChart from "$lib/charts/HistogramChart.svelte";
+  import PanelBars from '$lib/charts/PanelBars.svelte';
+  import {aggregateMultipleReviewScores,columns,reviewScores} from '$lib/utils/kpiHelpers'
+  import type {KPI} from '$lib/utils/kpiHelpers'
+
+
   type PageData = {
     geojson: any;
     availableStays: number;
@@ -28,15 +33,19 @@
     touristRatingData: any;
     detailed_data_rows: any;
     binnedDataOverall: any;
+    kpis: KPI[];
   };
+
+  let kpis: KPI[] = []
 
   export let data: PageData;
   onMount(() => {
+    detailedRows.set(data.detailed_data_rows); // ← inject the raw data only once
     selectedNeighborhood.set(null);
   });
 
   let compareField = null;
-  $: compareField = $selectedNeighborhood ? "compare" : null;
+  $: compareField = $selectedNeighborhood ? 'compare' : null;
 
   //Available stays
   $: selectedNeighborhoodAvailableListings =
@@ -99,6 +108,13 @@
       })()
     : null;
 
+// Update `kpis` whenever data or neighborhood changes
+$: kpis = [...aggregateMultipleReviewScores(data.detailed_data_rows, columns, $selectedNeighborhood ?? null)];
+
+// Compute selectedReviewScores conditionally based on neighborhood
+$: selectedReviewScores = $selectedNeighborhood ? kpis : data.kpis;
+
+console.log("review scores -", selectedReviewScores)
     //superhost
     $: selectedNeighborhoodSuperhostCounts =
   $selectedNeighborhood && data.detailed_data_rows?.length
@@ -211,6 +227,7 @@ console.log(data.binnedDataOverall);
         overview: data.superhostCounts,
         region: selectedNeighborhoodSuperhostCounts || undefined,
       }}
+      label = "Superhost"
     />
   </div>
   <div class="bg-white p-5 rounded shadow">
@@ -221,13 +238,7 @@ console.log(data.binnedDataOverall);
     />
   </div>
   <div class="bg-white p-5 rounded shadow">
-    <AveragePrice
-    overviewMin={data.minPrice}
-    overviewMax={data.maxPrice}
-    regionMin={regionMin}
-    regionMax={regionMax}
-    unit="$"
-  />
+     <PanelBars scores={selectedReviewScores} />
   </div>
 </section>
 

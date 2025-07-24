@@ -4,6 +4,9 @@ import { base } from '$app/paths';
 import { prepareBubbleChart} from '$lib/utils/prepareBubbleChart';
 import {getAvailabilityHistogramDataByNeighborhood} from '$lib/utils/prepareHistogram';
 import { aggregateRoomType, aggregateAverageRating, getTopNeighborhoods } from '$lib/utils/aggregate';
+import {aggregateMultipleReviewScores,columns,reviewScores} from '$lib/utils/kpiHelpers'
+import type {KPI} from '$lib/utils/kpiHelpers'
+
 export const load: PageLoad =  async function load({ fetch }) {
 
   const geoRes = await fetch(base + '/neighbourhoods.geojson');
@@ -164,6 +167,10 @@ const binnedDataOverall = getAvailabilityHistogramDataByNeighborhood(detailed_da
 console.log(binnedDataOverall.length); // should be > 0
 console.log(binnedDataOverall[0]);     // should include availability_365
 
+
+let kpis: KPI[] = []
+kpis = [...aggregateMultipleReviewScores(detailed_data_rows, columns, null)];
+console.log("Value in ts -",kpis)
 return {
     geojson,
     availableStays,
@@ -177,7 +184,8 @@ return {
    overallRoomTypeData,
    touristRatingData,
    detailed_data_rows,
-   binnedDataOverall
+   binnedDataOverall,
+   kpis
   };
 
 }
