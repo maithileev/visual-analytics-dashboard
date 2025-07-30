@@ -19,7 +19,6 @@
   import type {KPI} from '$lib/utils/kpiHelpers'
   import { loadAndAggregateTopNeighborhoods } from '$lib/utils/aggregateTopNeighborhoods';
   import type {NeighborhoodStats} from '$lib/utils/aggregateTopNeighborhoods';
-  export let data: PageData;
 
   type PageData = {
     geojson: any;
@@ -38,6 +37,18 @@
     kpis: KPI[];
     neighborhoodStats: any;
   };
+  export let data: PageData;
+
+  let kpis: KPI[] = []
+  let neighborhoodStats: NeighborhoodStats[] = [];
+  let filteredStats: NeighborhoodStats[] = [];
+
+  onMount(async() => {
+    detailedRows.set(data.detailed_data_rows); // ← inject the raw data only once
+    selectedNeighborhood.set(null);
+    neighborhoodStats = await loadAndAggregateTopNeighborhoods();
+    applySorting();
+  });
 
   let recommendations = [];
   let loading = false;
@@ -60,20 +71,10 @@
     max_price: max_price.toString(),
     limit: limit.toString()
   });
-
-  let kpis: KPI[] = []
-  let neighborhoodStats: NeighborhoodStats[] = [];
-  let filteredStats: NeighborhoodStats[] = [];
+  }
 
   let sortColumn: keyof NeighborhoodStats = 'sentimentScore';
   let sortAscending = false; // default to descending
-
-  onMount(async() => {
-    detailedRows.set(data.detailed_data_rows); // ← inject the raw data only once
-    selectedNeighborhood.set(null);
-    neighborhoodStats = await loadAndAggregateTopNeighborhoods();
-    applySorting();
-  });
 
   let compareField = null;
   $: compareField = $selectedNeighborhood ? 'compare' : null;
