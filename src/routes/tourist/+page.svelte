@@ -19,6 +19,7 @@
   import type {KPI} from '$lib/utils/kpiHelpers'
   import { loadAndAggregateTopNeighborhoods } from '$lib/utils/aggregateTopNeighborhoods';
   import type {NeighborhoodStats} from '$lib/utils/aggregateTopNeighborhoods';
+  export let data: PageData;
 
   type PageData = {
     geojson: any;
@@ -67,7 +68,6 @@
   let sortColumn: keyof NeighborhoodStats = 'sentimentScore';
   let sortAscending = false; // default to descending
 
-  export let data: PageData;
   onMount(async() => {
     detailedRows.set(data.detailed_data_rows); // ← inject the raw data only once
     selectedNeighborhood.set(null);
