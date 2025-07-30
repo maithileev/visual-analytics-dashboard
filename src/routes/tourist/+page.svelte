@@ -17,7 +17,8 @@
   import PanelBars from '$lib/charts/PanelBars.svelte';
   import {aggregateMultipleReviewScores,columns,reviewScores} from '$lib/utils/kpiHelpers'
   import type {KPI} from '$lib/utils/kpiHelpers'
-
+  import { loadAndAggregateTopNeighborhoods } from '$lib/utils/aggregateTopNeighborhoods';
+  import type {NeighborhoodStats} from '$lib/utils/aggregateTopNeighborhoods';
 
   type PageData = {
     geojson: any;
@@ -34,14 +35,44 @@
     detailed_data_rows: any;
     binnedDataOverall: any;
     kpis: KPI[];
+    neighborhoodStats: any;
   };
 
+  let recommendations = [];
+  let loading = false;
+  let error = '';
+
+  // Filters
+  let accommodates: number = 2;
+  let min_price: number = 50;
+  let max_price: number = 150;
+  let limit: number = 5;
+
+  async function fetchTouristRecommendations() {
+    loading = true;
+    error = '';
+    recommendations = [];
+
+  const query = new URLSearchParams({
+    accommodates: accommodates.toString(),
+    min_price: min_price.toString(),
+    max_price: max_price.toString(),
+    limit: limit.toString()
+  });
+
   let kpis: KPI[] = []
+  let neighborhoodStats: NeighborhoodStats[] = [];
+  let filteredStats: NeighborhoodStats[] = [];
+
+  let sortColumn: keyof NeighborhoodStats = 'sentimentScore';
+  let sortAscending = false; // default to descending
 
   export let data: PageData;
-  onMount(() => {
+  onMount(async() => {
     detailedRows.set(data.detailed_data_rows); // ← inject the raw data only once
     selectedNeighborhood.set(null);
+    neighborhoodStats = await loadAndAggregateTopNeighborhoods();
+    applySorting();
   });
 
   let compareField = null;
@@ -196,7 +227,6 @@ $: if ($selectedNeighborhood) {
   regionAverage = pricesPerDay.length ? parseFloat((totalPrice / pricesPerDay.length).toFixed(2)) : undefined;
 }
 
-
 //availability 
 let selectedData = []
 $: selectedData = $selectedNeighborhood
@@ -204,6 +234,37 @@ $: selectedData = $selectedNeighborhood
     : null;
 
 console.log(data.binnedDataOverall);
+
+function sortBy(column: keyof NeighborhoodStats) {
+    if (column === 'neighborhood') return; // no sorting on name
+
+    if (sortColumn === column) {
+      sortAscending = !sortAscending;
+    } else {
+      sortColumn = column;
+      sortAscending = true;
+    }
+    applySorting();
+  }
+
+  // Apply sorting and keep only top 5
+  function applySorting() {
+    filteredStats = [...neighborhoodStats]
+      .sort((a, b) => {
+        const valA = a[sortColumn];
+        const valB = b[sortColumn];
+        if (valA < valB) return sortAscending ? -1 : 1;
+        if (valA > valB) return sortAscending ? 1 : -1;
+        return 0;
+      })
+      .slice(0, 5);
+  }
+
+  function sortArrow(column: keyof NeighborhoodStats) {
+    if (sortColumn !== column) return '';
+    return sortAscending ? '▲' : '▼';
+  }
+
 </script>
 
 <section class="kpi-grid">
@@ -300,6 +361,63 @@ selectedBinnedData={selectedData ?? []}
       />
     </div>
     <div class="bg-white p-4 rounded shadow">
+      <h2 class="text-xl font-bold mb-4">Top Neighborhoods for Tourists</h2>
+
+      <table class="neighborhood-table">
+        <thead>
+          <tr>
+            <th>
+              Neighborhood
+            </th>
+            <th
+              on:click={() => sortBy('sentimentScore')}
+            >
+              Sentiment {sortArrow('sentimentScore')}
+            </th>
+            <th
+              on:click={() => sortBy('averageRating')}
+            >
+              Avg Rating {sortArrow('averageRating')}
+            </th>
+            <th
+              on:click={() => sortBy('totalReviews')}
+            >
+              # Reviews {sortArrow('totalReviews')}
+            </th>
+            <th
+              on:click={() => sortBy('startingPrice')}
+            >
+              Starting Price (€) {sortArrow('startingPrice')}
+            </th>
+            <th
+              on:click={() => sortBy('percentInstantBookable')}
+            >
+              % Instant Bookable {sortArrow('percentInstantBookable')}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {#if filteredStats.length > 0}
+            {#each filteredStats as n}
+              <tr>
+                <td>{n.neighborhood}</td>
+                <td>{n.sentimentScore}</td>
+                <td>{n.averageRating}</td>
+                <td>{n.totalReviews}</td>
+                <td>${n.startingPrice}</td>
+                <td>{n.percentInstantBookable}%</td>
+              </tr>
+            {/each}
+          {:else}
+            <tr>
+              <td colspan="6">
+                No data available.
+              </td>
+            </tr>
+          {/if}
+        </tbody>
+      </table>
+            
     <div class="bg-white p-4 rounded shadow"></div>
   </div>
 </section>

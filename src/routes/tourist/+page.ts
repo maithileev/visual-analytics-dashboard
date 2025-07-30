@@ -9,6 +9,7 @@ import type {KPI} from '$lib/utils/kpiHelpers'
 
 export const load: PageLoad =  async function load({ fetch }) {
 
+
   const geoRes = await fetch(base + '/neighbourhoods.geojson');
   const geojson = await geoRes.json();
 

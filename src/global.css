@@ -165,3 +165,43 @@ body {
     flex-shrink: 0;
   }
   
+
+  /* TopNeighborhoods.css */
+
+.neighborhood-table {
+  width: 100%;
+  max-width: 900px;
+  border-collapse: collapse;
+  margin-bottom: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.neighborhood-table th,
+.neighborhood-table td {
+  padding: 12px 16px;
+  border: 1px solid #ccc;
+  text-align: left;
+}
+
+.neighborhood-table thead {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+.neighborhood-table tr:hover {
+  background-color: #f9f9f9;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.neighborhood-table th {
+  cursor: pointer;
+  user-select: none;
+}
+
+.neighborhood-table th:hover {
+  background-color: #eaeaea;
+}
