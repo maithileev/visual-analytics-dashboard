@@ -66,9 +66,30 @@ body {
   }
   
 
+  .tab-links {
+    display: flex;
+    gap: 2rem;
+  }
+  
+  .reco-button {
+    padding: 0.4rem 1rem;
+    background-color: #0077cc;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .reco-button:hover {
+    background-color: #005fa3;
+  }
+  
   .nav-tabs {
     display: flex;
-    justify-content: left;
+    justify-content: space-between;
+    align-items: center;
     background-color: #ffffff;
     border-bottom: 2px solid #0077cc;
     padding: 0.5rem 0;
@@ -113,6 +134,14 @@ body {
     display: grid;
     grid-template-columns: 1.25fr 1fr 1fr;
     gap: 1rem;
+    align-items: start;
+    margin-bottom: 2rem;
+  }
+  
+  .dashboard-row-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem; /* optional: adds spacing between columns */
     align-items: start;
     margin-bottom: 2rem;
   }

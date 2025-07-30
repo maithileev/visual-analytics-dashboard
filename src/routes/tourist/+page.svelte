@@ -17,8 +17,7 @@
   import PanelBars from '$lib/charts/PanelBars.svelte';
   import {aggregateMultipleReviewScores,columns,reviewScores} from '$lib/utils/kpiHelpers'
   import type {KPI} from '$lib/utils/kpiHelpers'
-  import { loadAndAggregateTopNeighborhoods } from '$lib/utils/aggregateTopNeighborhoods';
-  import type {NeighborhoodStats} from '$lib/utils/aggregateTopNeighborhoods';
+  import TopNeighborhoods from '$lib/components/TopNeighborhoods.svelte';
 
   type PageData = {
     geojson: any;
@@ -35,7 +34,7 @@
     detailed_data_rows: any;
     binnedDataOverall: any;
     kpis: KPI[];
-    neighborhoodStats: any;
+    top3Neighborhoods: any;
   };
   export let data: PageData;
 
@@ -46,33 +45,9 @@
   onMount(async() => {
     detailedRows.set(data.detailed_data_rows); // ← inject the raw data only once
     selectedNeighborhood.set(null);
-    neighborhoodStats = await loadAndAggregateTopNeighborhoods();
-    applySorting();
   });
 
-  let recommendations = [];
-  let loading = false;
-  let error = '';
-
-  // Filters
-  let accommodates: number = 2;
-  let min_price: number = 50;
-  let max_price: number = 150;
-  let limit: number = 5;
-
-  async function fetchTouristRecommendations() {
-    loading = true;
-    error = '';
-    recommendations = [];
-
-  const query = new URLSearchParams({
-    accommodates: accommodates.toString(),
-    min_price: min_price.toString(),
-    max_price: max_price.toString(),
-    limit: limit.toString()
-  });
-  }
-
+  console.log("Top neighborhood data", neighborhoodStats);
   let sortColumn: keyof NeighborhoodStats = 'sentimentScore';
   let sortAscending = false; // default to descending
 
@@ -341,18 +316,9 @@ selectedBinnedData={selectedData ?? []}
   </div>
 </section>
 
-<section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-  <!-- Left: Map  -->
-  <div class="bg-white p-4 rounded shadow">
-    <!-- <Map geojson={data.geojson} /> -->
-  </div>
-
-  <!-- Right: Charts -->
-  <div class="space-y-4">
-    <!-- <div class="bg-white p-4 rounded shadow"><HorizontalBarChart data={data.instantBookableCounts} /> -->
-    <!-- </div> -->
-    <div class="bg-white p-4 rounded shadow">
-      <h2 class="text-lg font-semibold mb-2">
+<section class="dashboard-row-2">
+  <div>
+    <h2 class="text-lg font-semibold mb-2">
         Neighborhood Popularity: Price vs. Rating
       </h2>
       <BubbleChart
@@ -361,38 +327,32 @@ selectedBinnedData={selectedData ?? []}
         yLabel="Average Rating"
       />
     </div>
-    <div class="bg-white p-4 rounded shadow">
+    <div class="chart-container legend-container">
       <h2 class="text-xl font-bold mb-4">Top Neighborhoods for Tourists</h2>
+      <TopNeighborhoods neighborhoods={data.top3Neighborhoods} />
 
-      <table class="neighborhood-table">
+      <!-- <table class="neighborhood-table">
         <thead>
           <tr>
             <th>
               Neighborhood
             </th>
-            <th
-              on:click={() => sortBy('sentimentScore')}
-            >
-              Sentiment {sortArrow('sentimentScore')}
+            <th>
+              Sentiment
             </th>
             <th
-              on:click={() => sortBy('averageRating')}
             >
-              Avg Rating {sortArrow('averageRating')}
+              Avg Rating 
             </th>
             <th
-              on:click={() => sortBy('totalReviews')}
             >
               # Reviews {sortArrow('totalReviews')}
             </th>
             <th
-              on:click={() => sortBy('startingPrice')}
             >
               Starting Price (€) {sortArrow('startingPrice')}
             </th>
-            <th
-              on:click={() => sortBy('percentInstantBookable')}
-            >
+            <th>
               % Instant Bookable {sortArrow('percentInstantBookable')}
             </th>
           </tr>
@@ -417,11 +377,8 @@ selectedBinnedData={selectedData ?? []}
             </tr>
           {/if}
         </tbody>
-      </table>
+      </table> -->
             
     <div class="bg-white p-4 rounded shadow"></div>
   </div>
 </section>
-<div class="bg-white p-4 rounded shadow">
-  <h2 class="text-lg font-semibold mb-2">Recommendations</h2>
-</div>

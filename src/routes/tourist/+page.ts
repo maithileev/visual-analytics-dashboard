@@ -6,9 +6,10 @@ import {getAvailabilityHistogramDataByNeighborhood} from '$lib/utils/prepareHist
 import { aggregateRoomType, aggregateAverageRating, getTopNeighborhoods } from '$lib/utils/aggregate';
 import {aggregateMultipleReviewScores,columns,reviewScores} from '$lib/utils/kpiHelpers'
 import type {KPI} from '$lib/utils/kpiHelpers'
+import type {NeighborhoodStats} from '$lib/utils/aggregateTopNeighborhoods';
+import { loadAndAggregateTopNeighborhoods } from '$lib/utils/aggregateTopNeighborhoods';
 
 export const load: PageLoad =  async function load({ fetch }) {
-
 
   const geoRes = await fetch(base + '/neighbourhoods.geojson');
   const geojson = await geoRes.json();
@@ -159,8 +160,9 @@ const overallRoomTypeData = aggregateRoomType(detailed_data_rows); // if selecte
 const touristRatingData = aggregateAverageRating(detailed_data_rows);
 
 // top 3 neighborhoods
-const top3Neighborhoods = getTopNeighborhoods(detailed_data_rows, 3);
-console.log(top3Neighborhoods)
+const topNeighborhoods = await loadAndAggregateTopNeighborhoods(fetch);
+const top3Neighborhoods = topNeighborhoods.slice(0,3);
+console.log("top3Neighborhoods" , top3Neighborhoods)
 
 //Average Availability for 365
 const binnedDataOverall = getAvailabilityHistogramDataByNeighborhood(detailed_data_rows);
@@ -186,7 +188,8 @@ return {
    touristRatingData,
    detailed_data_rows,
    binnedDataOverall,
-   kpis
+   kpis,
+   top3Neighborhoods
   };
 
 }

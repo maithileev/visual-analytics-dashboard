@@ -17,6 +17,7 @@
     import { aggregateRadarMetrics, normalizeRadarMetrics, findMaxValues } from '$lib/utils/radarNormalization';
     import type { RadarInputListing } from '$lib/utils/prepareRadarData'
     import RadarChart from '$lib/charts/RadarChart.svelte';
+    import TopHosts from '$lib/components/TopHosts.svelte';
 
     type PageData  = {
       geojson : any ;
@@ -32,6 +33,8 @@
       processedSentimentData : any;
       radarListings : any;
       overallRadarData : any;
+      topHosts : any;
+      topHostsCalculated : any;
     }
   
     export let data : PageData
@@ -383,18 +386,18 @@ $: selectedRegionLicenseSummary = $selectedNeighborhood && $detailedRows
     </div>
   </section>
   
-  <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <section class="dashboard-row-2">
       <!-- <div class="bg-white p-4 rounded shadow"><HorizontalBarChart data={data.instantBookableCounts} />
       </div> -->
-      <div class="bg-white p-4 rounded shadow">
+      <div>
         <h2 class="text-lg font-semibold mb-2">Neighborhood Popularity: Occupancy vs. Rating</h2>
         <BubbleChart data={data.bubbleData}  
         xLabel="Average Occupancy Rate (%)"
         yLabel="Average Rating"
             />
       </div>
-
+      <div class="chart-container legend-container">
+        <h2 class="text-lg font-semibold mb-2">Top Earning Hosts</h2>
+        <TopHosts topHosts={data.topHostsCalculated} />
+      </div>
   </section> 
-  <div class="bg-white p-4 rounded shadow">
-    <h2 class="text-lg font-semibold mb-2">Recommendations</h2>
-  </div>

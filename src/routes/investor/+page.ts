@@ -8,6 +8,7 @@ import { selectedNeighborhood } from '$lib/stores/selectedNeighborhood';
 import {preprocessSentimentData} from '$lib/utils/mapDataHelpers';
 import { extractRadarData } from '$lib/utils/prepareRadarData';
 import {computeOverallRadarMetrics} from '$lib/utils/radarNormalization'
+import { getTopHosts } from '$lib/utils/getTopHosts';
 
 let neighborhood: string | null = null;
 
@@ -179,6 +180,42 @@ console.log('Extracted count:', radarListings.length); // ~10k
 
 const overallRadarData = computeOverallRadarMetrics(radarListings);
 console.log('Aggregated:', overallRadarData); // single object with averages
+
+const topHostsCalculated = getTopHosts(detailed_data_rows, 3);
+
+//Top Hosts 
+const topHosts = [{
+  host_name: "MariaNapoli",
+  estimated_revenue_l365d: 72000,
+  calculated_host_listings_count: 4,
+  estimated_occupancy_l365d: 87,
+  price_min: 95,
+  price_max: 180,
+  host_is_superhost: true,
+  host_since: "2023-03-23"
+},
+{
+  host_name: "MariaNapoli",
+  estimated_revenue_l365d: 72000,
+  calculated_host_listings_count: 4,
+  estimated_occupancy_l365d: 87,
+  price_min: 95,
+  price_max: 180,
+  host_is_superhost: true,
+  host_since: "2023-03-23"
+},
+{
+  host_name: "MariaNapoli",
+  estimated_revenue_l365d: 72000,
+  calculated_host_listings_count: 4,
+  estimated_occupancy_l365d: 87,
+  price_min: 95,
+  price_max: 180,
+  host_is_superhost: true,
+  host_since: "2023-03-23"
+}
+]
+
 return {
     geojson,
    licenseSummary,
@@ -192,7 +229,9 @@ return {
    detailed_data_rows,
    processedSentimentData,
    radarListings,
-   overallRadarData
+   overallRadarData,
+   topHosts,
+   topHostsCalculated
   };
 
 }
