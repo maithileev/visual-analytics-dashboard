@@ -14,11 +14,11 @@
   export let label = "Value";
   export let unit = "";
   export let colorRange: string[] = [
-    "#e6f2f8",
-    "#a8d0e6",
-    "#5ca7c8",
-    "#2c6b8f",
-    "#1b3e57"
+    "#f5f8fc", // pastel icy blue
+    "#d0e1f2", // light powder blue
+    "#a6c8e4", // soft muted sky blue
+    "#679acb", // slate blue, mid contrast
+    "#1e40af", // your main indigo
   ];
   export let tooltipFormatter: (val: number) => string = (v) => v.toString();
 
@@ -62,7 +62,13 @@
 
     d3.select(svg).selectAll("*").remove();
 
-    const usableHeight = containerHeight - headingHeight - paddingVertical - legendHeight - legendMarginTop - 25;
+    const usableHeight =
+      containerHeight -
+      headingHeight -
+      paddingVertical -
+      legendHeight -
+      legendMarginTop -
+      25;
 
     const projection = d3.geoMercator().fitSize([width, usableHeight], geojson);
     pathGenerator = d3.geoPath(projection);
@@ -76,11 +82,13 @@
     const minVal = d3.min(dataValues) ?? 0;
     const maxVal = d3.max(dataValues) ?? 1;
 
-    const colorScale = d3.scaleThreshold<number, string>()
+    const colorScale = d3
+      .scaleThreshold<number, string>()
       .domain(d3.range(minVal, maxVal, (maxVal - minVal) / colorRange.length))
       .range(colorRange);
 
-    const svgSelection = d3.select(svg)
+    const svgSelection = d3
+      .select(svg)
       .attr("width", width)
       .attr("height", containerHeight - paddingVertical);
 
@@ -92,37 +100,61 @@
       .append("path")
       .attr("d", pathGenerator)
       .attr("fill", (d: any) => {
-        const rawName = d.properties.neighbourhood_cleansed || d.properties.name || d.properties.neighbourhood;
+        const rawName =
+          d.properties.neighbourhood_cleansed ||
+          d.properties.name ||
+          d.properties.neighbourhood;
         const name = normalizeName(rawName);
         const val = normalizedValues[name];
         return val !== undefined ? colorScale(val) : "#eee";
       })
-      .attr("stroke", (d: any) => {
-        const rawName = d.properties.neighbourhood_cleansed || d.properties.name || d.properties.neighbourhood;
-        const name = normalizeName(rawName);
-        return name === currentSelected ? "#333" : "#999";
-      })
+      .attr("stroke", "#fff")
       .attr("stroke-width", (d: any) => {
-        const rawName = d.properties.neighbourhood_cleansed || d.properties.name || d.properties.neighbourhood;
+        const rawName =
+          d.properties.neighbourhood_cleansed ||
+          d.properties.name ||
+          d.properties.neighbourhood;
         const name = normalizeName(rawName);
-        return name === currentSelected ? 2 : 0.5;
+        return name === currentSelected ? 2 : 0.8;
       })
       .on("mousemove", (event, d: any) => {
-        const rawName = d.properties.neighbourhood_cleansed || d.properties.name || d.properties.neighbourhood;
+        const rawName =
+          d.properties.neighbourhood_cleansed ||
+          d.properties.name ||
+          d.properties.neighbourhood;
         const name = normalizeName(rawName);
         const val = normalizedValues[name];
         tooltipText = `${rawName} — ${
-          val !== undefined ? tooltipFormatter(val) + (unit ? " " + unit : "") : "No data"
+          val !== undefined
+            ? tooltipFormatter(val) + (unit ? " " + unit : "")
+            : "No data"
         }`;
-        tooltipX = event.pageX + 10;
-        tooltipY = event.pageY + 10;
+        // Improved tooltip positioning: adjust if near edge of viewport
+        const tooltipWidth = 150; // rough width
+        const tooltipHeight = 40;
+
+        const pageWidth = window.innerWidth;
+        const pageHeight = window.innerHeight;
+
+        let x = event.pageX + 10;
+        let y = event.pageY - 10;
+
+        if (x + tooltipWidth > pageWidth) x = event.pageX - tooltipWidth - 12;
+        if (y + tooltipHeight > pageHeight)
+          y = event.pageY - tooltipHeight - 12;
+
+        tooltipX = event.clientX + 10;
+        tooltipY = event.clientY - 20;
         tooltipVisible = true;
       })
       .on("mouseout", () => {
         tooltipVisible = false;
       })
       .on("click", (event, d: any) => {
-        const rawName = d.properties.neighbourhood_cleansed || d.properties.name || d.properties.neighbourhood;
+        const rawName =
+          d.properties.neighbourhood_cleansed ||
+          d.properties.name ||
+          d.properties.neighbourhood;
         selectedNeighborhood.set(rawName);
       });
 
@@ -130,36 +162,49 @@
     const legendY = usableHeight + legendMargin.top;
     const legendWidth = 200;
 
-    const legend = svgSelection.append("g")
+    const legend = svgSelection
+      .append("g")
       .attr("transform", `translate(${legendMargin.left},${legendY})`);
 
-    const legendScale = d3.scaleLinear().domain([minVal, maxVal]).range([0, legendWidth]);
+    const legendScale = d3
+      .scaleLinear()
+      .domain([minVal, maxVal])
+      .range([0, legendWidth]);
 
-    const legendAxis = d3.axisBottom(legendScale).ticks(colorRange.length).tickFormat(d3.format(".2f"));
+    const legendAxis = d3
+      .axisBottom(legendScale)
+      .ticks(colorRange.length)
+      .tickFormat(d3.format(".2f"));
 
     const defs = svgSelection.append("defs");
-    const linearGradient = defs.append("linearGradient").attr("id", "legend-gradient");
+    const linearGradient = defs
+      .append("linearGradient")
+      .attr("id", "legend-gradient");
 
-    linearGradient.selectAll("stop")
+    linearGradient
+      .selectAll("stop")
       .data(colorRange)
       .enter()
       .append("stop")
       .attr("offset", (_, i) => (i / (colorRange.length - 1)) * 100 + "%")
       .attr("stop-color", (d) => d);
 
-    legend.append("rect")
+    legend
+      .append("rect")
       .attr("width", legendWidth)
       .attr("height", legendRectHeight)
       .style("fill", "url(#legend-gradient)");
 
-    legend.append("g")
+    legend
+      .append("g")
       .attr("transform", `translate(0,${legendRectHeight})`)
       .call(legendAxis)
       .selectAll("text")
       .style("font-size", "10px")
       .style("fill", "#333");
 
-    legend.append("text")
+    legend
+      .append("text")
       .attr("x", 0)
       .attr("y", -6)
       .text(label)
@@ -190,10 +235,11 @@
     pointer-events: none;
     background: rgba(0, 0, 0, 0.75);
     color: white;
-    padding: 5px 8px;
+    padding: 6px 10px;
     border-radius: 3px;
     font-size: 12px;
     z-index: 10;
     user-select: none;
+    transition: transform 0.1s ease-out, opacity 0.1s ease-out;
   }
 </style>

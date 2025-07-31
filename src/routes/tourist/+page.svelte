@@ -286,11 +286,11 @@ function sortBy(column: keyof NeighborhoodStats) {
       geojson={data.geojson}
       values={data.touristRatingData}
       colorRange={[
-        "#e6f2f8", // very light sky blue
-        "#a8d0e6", // light blue
-        "#5ca7c8", // medium blue
-        "#2c6b8f", // deep blue
-        "#1b3e57", // darkest navy blue
+  "#f5f8fc",  // pastel icy blue
+  "#d0e1f2",  // light powder blue
+  "#a6c8e4",  // soft muted sky blue
+  "#679acb",  // slate blue, mid contrast
+  "#1e40af"   // your main indigo
       ]}
       label="Average Rating"
       unit="/5"

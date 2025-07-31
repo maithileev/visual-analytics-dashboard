@@ -171,6 +171,7 @@ const avgEstimatedRevenueRounded = avgEstimatedRevenue.toFixed(2);
 
 // Revenue by Neighborhood
 const avgRevenueByNeighborhood = groupAverageRevenueByNeighborhood(detailed_data);
+console.log("Average Revenue data - ", avgRevenueByNeighborhood)
 
 const bubbleData = prepareBubbleChart(detailed_data_rows, 'neighbourhood_cleansed', 'estimated_occupancy_l365d', 'review_scores_rating');
 

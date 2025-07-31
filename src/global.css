@@ -2,6 +2,7 @@
 body {
     margin: 0;
     font-family: system-ui, sans-serif;
+    background-color: #f5f7fa; /*subtle gray-blue */
   }
   
   .kpi-grid {
