@@ -81,6 +81,11 @@ def prepare_tourist_data(raw_csv_path, sentiment_csv_path, output_pickle_path, o
         if orig_col in df.columns:
             df[new_col] = df[orig_col].astype('category').cat.codes
 
+    print("Room Type Mapping (for frontend reference):")
+    room_type_mapping = dict(enumerate(df['room_type'].astype('category').cat.categories))
+    for code, label in room_type_mapping.items():
+        print(f"{code}: {label}")
+
     # Prepare final DataFrame with selected columns
     final_cols = [
         'id',  # listing id to return in API

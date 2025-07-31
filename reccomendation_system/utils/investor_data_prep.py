@@ -3,6 +3,26 @@ import numpy as np
 import json
 from amenities_dict import build_amenities_dict, encode_amenities  # Reuse your amenities functions
 
+
+def simplify_property_type(label):
+    if not isinstance(label, str):
+        return 'Other'
+
+    l = label.lower()
+
+    if any(x in l for x in ['rental unit', 'condo', 'apartment', 'suite', 'aparthotel']):
+        return 'Apartment / Condo'
+    if any(x in l for x in ['home', 'villa', 'vacation', 'cottage', 'tiny', 'farm stay', 'place', 'casa particular']):
+        return 'House / Villa / Cottage'
+    if any(x in l for x in ['bed and breakfast', 'guesthouse']):
+        return 'B&B / Guesthouse'
+    if any(x in l for x in ['hotel', 'hostel']):
+        return 'Hotel / Hostel'
+    if any(x in l for x in ['loft', 'tent', 'camper', 'boat', 'dome', 'houseboat', 'yurt', 'castle']):
+        return 'Unique Stays'
+
+    return 'Other'
+
 def prepare_investor_data(
     raw_csv_path,
     sentiment_csv_path,
@@ -73,10 +93,15 @@ def prepare_investor_data(
         if col in df.columns:
             df[col] = df[col].map({'t': 1, 'f': 0}).fillna(0).astype(int)
 
+    print("Simplifying property_type...")
+    df['property_type_simplified'] = df['property_type'].apply(simplify_property_type)
+
+    print("Encoding simplified property_type as codes...")
+    df['property_type_code'] = df['property_type_simplified'].astype('category').cat.codes
+
     # Encode categorical features as codes
     categorical_cols = {
         'room_type': 'room_type_code',
-        'property_type': 'property_type_code',
         'neighbourhood_cleansed': 'neighbourhood_code'
     }
     for orig_col, new_col in categorical_cols.items():
@@ -121,6 +146,10 @@ def prepare_investor_data(
                         amenities_numeric=amenities_numeric_features,
                         final_features=final_df.to_numpy())
 
+    print("Property Type Mapping (for frontend reference):")
+    property_type_mapping = dict(enumerate(df['property_type_simplified'].astype('category').cat.categories))
+    for code, label in property_type_mapping.items():
+        print(f"{code}: {label}")
     print(f"Investor data preparation complete.\nPickle saved to: {output_pickle_path}\nNPZ saved to: {output_npz_path}")
 
 if __name__ == "__main__":

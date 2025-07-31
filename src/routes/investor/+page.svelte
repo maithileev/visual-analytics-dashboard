@@ -272,14 +272,6 @@ $: neighborhoodNormalized = $selectedNeighborhood && filteredListings.length > 0
   ? normalizeRadarMetrics(neighborhoodRawMetrics, neighborhoodMaxValues)
   : null;
 
-// let neighborhoodNormalized = {
-//     roi: 0.8,
-//     occupancyRate: 0.5,
-//     minNights: 0.6,
-//     reviewCount: 0.7,
-//     rating: 0.4
-//   };
-
   $: {
   console.log('Selected Neighborhood:', $selectedNeighborhood);
   console.log('Filtered Listings count:', filteredListings.length);
