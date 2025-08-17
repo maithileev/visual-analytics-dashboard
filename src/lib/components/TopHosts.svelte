@@ -3,55 +3,106 @@
         host_name: string;
         estimated_revenue_l365d: number;
         calculated_host_listings_count: number;
-        estimated_occupancy_l365d: number;
+        estimated_occupancy_percent: number; // days booked
         price_min: number;
         price_max: number;
         host_is_superhost: boolean;
         host_id: string | number;
         host_since: string;
+        host_url: string;
     }[] = [];
+
+    // Helper functions
+    const formatCurrency = (value: number) =>
+        value >= 1_000_000
+            ? `€${(value / 1_000_000).toFixed(2)}M`
+            : value >= 1_000
+              ? `€${(value / 1_000).toFixed(1)}K`
+              : `€${value}`;
+
+    const formatPriceRange = (min: number, max: number) =>
+        min === max
+            ? formatCurrency(min)
+            : `${formatCurrency(min)} – ${formatCurrency(max)}`;
+    
+    $: localTopHosts = [...topHosts];
+
+    $: console.log("Top Hosts in svelte:", topHosts);
+
 </script>
 
 <div class="container" role="list" aria-label="Top earning hosts pyramid">
-    {#each topHosts.slice(0, 5) as host (host.host_id)}
+    {#each topHosts as host (host.host_name)}
         <div
             class="tile"
             role="listitem"
             aria-label={`Host details for ${host.host_name}`}
         >
-            <div class="tile-header" title={host.host_name}>
-                <span>{host.host_name}</span>
-            </div>
-            <div class="stat-row">
-                <span class="label">💰 Revenue:</span>
-                <span class="value"
-                    >${host.estimated_revenue_l365d.toLocaleString()}</span
-                >
-            </div>
-            <div class="stat-row">
-                <span class="label">🛏️ Listings:</span>
-                <span class="value">{host.calculated_host_listings_count}</span>
-            </div>
-            <div class="stat-row">
-                <span class="label">💡 Occupancy:</span>
-                <span class="value">{host.estimated_occupancy_l365d}%</span>
-            </div>
-            <div class="stat-row">
-                <span class="label">🏷️ Price:</span>
-                <span class="value">${host.price_min} – ${host.price_max}</span>
-            </div>
-            <div class="stat-row">
-                <span class="label">Host Since:</span>
-                <span class="value">{host.host_since}</span>
-            </div>
+            <div class="tile-content">
+                <div class="tile-header" title={host.host_name}>
+                    <span>{host.host_name}</span>
+                </div>
 
-            <div class="stat-row">
-                {#if host.host_is_superhost}
-                    <span class="superhost-badge" aria-label="Superhost badge"
-                        >⭐ Superhost</span
+                <div class="stat-row">
+                    <span class="label label-revenue">Revenue:</span>
+                    <span class="value"
+                        >{formatCurrency(host.estimated_revenue_l365d)}</span
                     >
-                {/if}
+                </div>
+
+                <div class="stat-row">
+                    <span class="label label-listings">Listings:</span>
+                    <span class="value"
+                        >{host.calculated_host_listings_count}</span
+                    >
+                </div>
+
+                <div
+                    class="stat-row"
+                    title={`${host.estimated_occupancy_percent} days booked`}
+                >
+                    <span class="label label-occupancy">Occupancy:</span>
+                    <span class="value"
+                        >{host.estimated_occupancy_percent}%</span
+                    >
+                </div>
+
+                <div class="stat-row">
+                    <span class="label label-price">Price:</span>
+                    <span class="value"
+                        >{formatPriceRange(
+                            host.price_min,
+                            host.price_max,
+                        )}</span
+                    >
+                </div>
+
+                <div class="stat-row host-since-row">
+                    <span class="label label-host-since">Host Since:</span>
+                    <span class="value">{host.host_since}</span>
+                </div>
+
+                <div class="stat-row">
+                    <span
+                        class="host-badge {host.host_is_superhost
+                            ? 'superhost'
+                            : 'not-superhost'}"
+                        aria-label={host.host_is_superhost
+                            ? "Superhost"
+                            : "Not a Superhost"}
+                    >
+                        {host.host_is_superhost
+                            ? "⭐ Superhost"
+                            : "☆ Not Superhost"}
+                    </span>
+                </div>
             </div>
+            <button
+                on:click={() => window.open(host.host_url, "_blank")}
+                class="learn-more-btn"
+            >
+                Learn More
+            </button>
         </div>
     {/each}
 </div>
@@ -62,13 +113,12 @@
     .container {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 2rem 1.5rem;
-        width: 100%;
+        column-gap: 1.5rem; /* horizontal spacing */
+        row-gap: 2rem; /* vertical spacing */
+        width: 95%;
         padding: 1.5rem 2rem;
-        box-sizing: border-box;
-        background: #f7fafc;
         font-family: "Inter", "Segoe UI", Arial, sans-serif;
-        justify-items: center;
+        justify-items: stretch; /* revert to center to prevent collapsing */
         align-items: start;
     }
 
@@ -76,18 +126,20 @@
         background: #fff;
         box-shadow: 0 4px 20px rgba(34, 42, 73, 0.08);
         border-radius: 14px;
-        padding: 1.2rem 1.5rem 1.1rem 1.5rem;
-        font-size: 1rem;
+        padding: 1.2rem 1.5rem;
         color: #223;
         min-width: 0;
         min-height: 290px;
         display: flex;
         flex-direction: column;
-        justify-content: flex-start;
-        box-sizing: border-box;
         transition: box-shadow 0.13s;
-        overflow-wrap: break-word;
-        word-break: break-word;
+    }
+
+    .tile-content {
+        flex: 1; /* fills available space, pushes button down */
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
     }
 
     .tile:hover {
@@ -100,66 +152,89 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 100%;
         margin-bottom: 0.3rem;
-        line-height: 1.1;
-    }
-
-    .value {
-        font-weight: 600;
-        font-size: 0.95rem; /* slightly smaller */
-        color: #2d3a4b;
-        white-space: nowrap; /* keep on single line */
-        overflow: hidden;
-        text-overflow: ellipsis; /* show "..." if too long */
-        max-width: 100%;
     }
 
     .stat-row {
         display: flex;
+        justify-content: space-between; /* push label left, value right */
         align-items: center;
-        gap: 0.7rem;
+        gap: 0.9rem;
         margin-bottom: 0.6rem;
-        padding: 0.2rem 0;    /* add vertical padding inside each stat row */
-        line-height: 1.3;
     }
 
     .label {
         font-weight: 500;
         color: #7b8ca0;
-        min-width: 78px;
         font-size: 0.96rem;
-        letter-spacing: 0.01em;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 100%;
-        margin: 0;
-        line-height: 1.1;
+        flex-shrink: 0; /* label won’t shrink */
+        margin-right: 0.5rem; /* some spacing from value */
     }
 
-    /* .value {
+    .value {
         font-weight: 600;
-        font-size: 1.04rem;
+        font-size: 0.95rem;
         color: #2d3a4b;
-        line-height: 1.22;
-        word-break: break-word;
-        max-width: calc(100% - 78px);
-        overflow-wrap: anywhere;
-    } */
+        white-space: nowrap;
+        /* overflow: hidden; */
+        text-overflow: ellipsis;
+        flex-shrink: 0; /* prevents it from shrinking too much */
+        text-align: left; /* keeps values right-aligned */
+    }
+
+    .host-since-row {
+        gap: 0.2rem; /* smaller space than the default 0.9rem */
+    }
+
+
+    .learn-more-btn {
+        background-color: #005fa3;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 0.5rem 1rem;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        margin-top: auto; /* pushes it to the bottom of the tile */
+    }
+
+    .learn-more-btn:hover {
+        background-color: #004a7c;
+    }
+
+    .host-badge {
+        font-weight: 600;
+        font-size: 0.87rem;
+        padding: 0.3rem 0.9rem;
+        border-radius: 12px;
+        display: inline-block;
+        text-align: center;
+        min-width: 110px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .superhost {
+        background: linear-gradient(90deg, #36c47d, #2dbe6b 95%);
+        color: #fff;
+    }
+
+    .not-superhost {
+        background: linear-gradient(90deg, #e0a192, #d17a62 95%);
+        color: #fff;
+    }
 
     .superhost-badge {
-        background: linear-gradient(90deg, #36c47d, #2dbe6b 95%);
+        background: linear-gradient(90deg, #3ac47d, #28a745 95%);
         color: #fff;
         font-weight: 600;
         font-size: 0.87rem;
         padding: 0.24rem 0.8rem;
         border-radius: 8px;
-        margin-top: 0.2rem;
-        user-select: none;
-        letter-spacing: 0.01em;
         box-shadow: 0 2px 6px rgba(39, 174, 96, 0.05);
-        flex-shrink: 0;
     }
 
     @media (max-width: 900px) {
@@ -169,5 +244,21 @@
         .tile {
             min-height: 235px;
         }
+    }
+
+    .label-revenue::before {
+        content: "💶 ";
+    }
+    .label-listings::before {
+        content: "🏠 ";
+    }
+    .label-occupancy::before {
+        content: "📊 ";
+    }
+    .label-price::before {
+        content: "💸 ";
+    }
+    .label-host-since::before {
+        content: "📆 ";
     }
 </style>

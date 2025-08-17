@@ -286,7 +286,7 @@ function sortBy(column: keyof NeighborhoodStats) {
       geojson={data.geojson}
       values={data.touristRatingData}
       colorRange={[
-  "#f5f8fc",  // pastel icy blue
+  "#b3d4eb",  // slightly darker pastel blue
   "#d0e1f2",  // light powder blue
   "#a6c8e4",  // soft muted sky blue
   "#679acb",  // slate blue, mid contrast
@@ -317,68 +317,19 @@ selectedBinnedData={selectedData ?? []}
 </section>
 
 <section class="dashboard-row-2">
-  <div>
+  <div class="chart-container legend-container">
     <h2 class="text-lg font-semibold mb-2">
         Neighborhood Popularity: Price vs. Rating
       </h2>
       <BubbleChart
         data={data.bubbleData}
-        xLabel="Average Price ($)"
+        xLabel="Average Price (€)"
         yLabel="Average Rating"
       />
     </div>
     <div class="chart-container legend-container">
       <h2 class="text-xl font-bold mb-4">Top Neighborhoods for Tourists</h2>
       <TopNeighborhoods neighborhoods={data.top3Neighborhoods} />
-
-      <!-- <table class="neighborhood-table">
-        <thead>
-          <tr>
-            <th>
-              Neighborhood
-            </th>
-            <th>
-              Sentiment
-            </th>
-            <th
-            >
-              Avg Rating 
-            </th>
-            <th
-            >
-              # Reviews {sortArrow('totalReviews')}
-            </th>
-            <th
-            >
-              Starting Price (€) {sortArrow('startingPrice')}
-            </th>
-            <th>
-              % Instant Bookable {sortArrow('percentInstantBookable')}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {#if filteredStats.length > 0}
-            {#each filteredStats as n}
-              <tr>
-                <td>{n.neighborhood}</td>
-                <td>{n.sentimentScore}</td>
-                <td>{n.averageRating}</td>
-                <td>{n.totalReviews}</td>
-                <td>${n.startingPrice}</td>
-                <td>{n.percentInstantBookable}%</td>
-              </tr>
-            {/each}
-          {:else}
-            <tr>
-              <td colspan="6">
-                No data available.
-              </td>
-            </tr>
-          {/if}
-        </tbody>
-      </table> -->
-            
-    <div class="bg-white p-4 rounded shadow"></div>
+    <!-- <div class="bg-white p-4 rounded shadow"></div> -->
   </div>
 </section>
