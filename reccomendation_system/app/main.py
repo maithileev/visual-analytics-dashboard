@@ -25,10 +25,10 @@ app.add_middleware(
 )
 
 # Load models and data at startup
-df_tourist = pd.read_pickle('../../static/tourist_features.pkl')
+df_tourist = pd.read_pickle('../../static/preprocessed_data/tourist_features.pkl')
 df_investor = pd.read_pickle('../../static/investor_features.pkl')
 
-npz_tourist = np.load('../../static/tourist_features.npz')
+npz_tourist = np.load('../../static/preprocessed_data/tourist_features.npz')
 npz_investor = np.load('../../static/investor_features.npz')
 
 model_tourist = joblib.load('../models/tourist_rf_model.joblib')
@@ -46,40 +46,56 @@ async def recommend_tourist(
     review_scores_rating: float = Query(None, ge=0, le=5),
     limit: int = Query(10, ge=1, le=50)
 ):
+    
+    # 1. Apply filters directly to DataFrame
     filtered = df_tourist.copy()
-
+    
     if accommodates is not None:
         filtered = filtered[filtered['accommodates'] >= accommodates]
-
     if host_is_superhost is not None:
         filtered = filtered[filtered['host_is_superhost'] == host_is_superhost]
-
     if room_type_code is not None:
         filtered = filtered[filtered['room_type_code'] == room_type_code]
-
     if minimum_nights is not None:
         filtered = filtered[filtered['minimum_nights'] <= minimum_nights]
-
     if min_price is not None:
         filtered = filtered[filtered['price'] >= min_price]
-
     if max_price is not None:
         filtered = filtered[filtered['price'] <= max_price]
-
     if review_scores_rating is not None:
         filtered = filtered[filtered['review_scores_rating'] >= review_scores_rating]
 
+    # If no results, relax filters progressively
+    if len(filtered) == 0:
+        filtered = df_tourist.copy()
+        if review_scores_rating is not None:
+            filtered = filtered[filtered['review_scores_rating'] >= max(3.0, review_scores_rating - 0.5)]
+        if min_price is not None:
+            filtered = filtered[filtered['price'] >= max(10, min_price * 0.7)]
+        if max_price is not None:
+            filtered = filtered[filtered['price'] <= max_price * 1.3]
+        if accommodates is not None:
+            filtered = filtered[filtered['accommodates'] >= max(1, accommodates - 1)]
+
+    # 2. Get features and predict
     valid_indices = filtered.index
     amenities = npz_tourist['amenities_numeric'][valid_indices]
-    features = npz_tourist['final_features'][valid_indices]
-    X = np.hstack([amenities, features])
-
+    numeric = npz_tourist['numeric_features'][valid_indices]
+    categorical = npz_tourist['categorical_features'][valid_indices]
+    X = np.hstack([amenities, numeric, categorical])
+    
     preds = model_tourist.predict(X)
+    listing_ids = npz_tourist['listing_ids'][valid_indices]
+    listing_urls = npz_tourist['listing_urls'][valid_indices]  # <-- add urls
+
     filtered = filtered.copy()
     filtered['predicted_score'] = preds
+    filtered['listing_id'] = listing_ids  # <-- align predictions with real IDs
+    filtered['listing_url'] = listing_urls  # <-- include urls
+
 
     top = filtered.sort_values(by='predicted_score', ascending=False).head(limit)
-    recommendations = top[['id', 'predicted_score']].to_dict(orient='records')
+    recommendations = top[['listing_id', 'listing_url', 'predicted_score']].to_dict(orient='records')
 
     return {"recommendations": recommendations}
 
@@ -95,6 +111,8 @@ async def recommend_investor(
     limit: int = Query(10, ge=1, le=50)
 ):
     filtered = df_investor.copy()
+
+    print(df_investor.columns)
 
     if min_price is not None:
         filtered = filtered[filtered['price'] >= min_price]
@@ -116,7 +134,10 @@ async def recommend_investor(
 
     valid_indices = filtered.index
     amenities = npz_investor['amenities_numeric'][valid_indices]
-    features = npz_investor['final_features'][valid_indices]
+    features = np.hstack([
+        npz_tourist['numeric_features'][valid_indices],
+        npz_tourist['categorical_features'][valid_indices]
+    ])
     X = np.hstack([amenities, features])
 
     preds = model_investor.predict(X)

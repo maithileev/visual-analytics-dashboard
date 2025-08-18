@@ -111,5 +111,5 @@ def recommend_for_tourist(user_filters: dict, top_n=10):
 
     # Return selected fields
     return top_listings[[
-        'name', 'neighbourhood_cleansed', 'price', 'predicted_rating', 'beds', 'accommodates', 'room_type', 'amenities'
+        'id','name', 'neighbourhood_cleansed', 'price', 'predicted_rating', 'beds', 'accommodates', 'room_type', 'amenities'
     ]].to_dict(orient='records')
