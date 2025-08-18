@@ -13,6 +13,11 @@
   export let xLabel: string = "Average Price (€)";
   export let yLabel: string = "Average Rating";
 
+  export let scaleConfig: {
+    yType?: "linear" | "log" | "symlog";
+    ySquish?: { low: number; high: number; factor: number };
+  } = { yType: "linear" };
+
   let svg: SVGSVGElement;
   let tooltip: HTMLDivElement;
 
@@ -66,14 +71,35 @@
   function showTooltip(event: MouseEvent, d) {
     const containerRect = svg.getBoundingClientRect();
     tooltip.style.display = "block";
-    tooltip.style.left = event.clientX - containerRect.left + 10 + "px";
-    tooltip.style.top = event.clientY - containerRect.top + 35 + "px";
     tooltip.innerHTML = `
-        <strong>${d.label}</strong><br/>
-        ${xLabel}: ${d.avg_x.toFixed(2)}<br/>
-        ${yLabel}: ${d.avg_y.toFixed(2)}<br/>
-        Listings: ${d.count}
-      `;
+    <strong>${d.label}</strong><br/>
+    ${xLabel}: ${d.avg_x.toFixed(2)}<br/>
+    ${yLabel}: ${d.avg_y.toFixed(2)}<br/>
+    Listings: ${d.count}
+  `;
+
+    const tooltipRect = tooltip.getBoundingClientRect();
+
+    // Base offsets
+    let left = event.clientX - containerRect.left + 10;
+    let top = event.clientY - containerRect.top + 20;
+
+    // Shift left if tooltip exceeds right boundary
+    if (left + tooltipRect.width > containerRect.width) {
+      left = event.clientX - containerRect.left - tooltipRect.width - 10;
+    }
+
+    // Shift up if tooltip exceeds bottom boundary
+    if (top + tooltipRect.height > containerRect.height) {
+      top = event.clientY - containerRect.top - tooltipRect.height - 10;
+    }
+
+    // Prevent negative positions
+    left = Math.max(0, left);
+    top = Math.max(0, top);
+
+    tooltip.style.left = left + "px";
+    tooltip.style.top = top + "px";
   }
 
   function hideTooltip() {
@@ -103,24 +129,27 @@
     if (!svg || !displayedData.length) return;
     d3.select(svg).selectAll("*").remove();
 
+    const filteredData = data.filter((d) => d.avg_y !== 0);
+    const filteredDisplayed = displayedData.filter((d) => d.avg_y !== 0);
+
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
 
     const x = d3
       .scaleLinear()
-      .domain(d3.extent(data, (d) => d.avg_x) as [number, number])
+      .domain(d3.extent(filteredData, (d) => d.avg_x) as [number, number])
       .nice()
       .range([0, chartWidth]);
 
     const y = d3
       .scaleLinear()
-      .domain(d3.extent(data, (d) => d.avg_y) as [number, number])
+      .domain(d3.extent(filteredData, (d) => d.avg_y) as [number, number])
       .nice()
       .range([chartHeight, 0]);
 
     const r = d3
       .scaleSqrt()
-      .domain([0, d3.max(data, (d) => d.count) || 1])
+      .domain([0, d3.max(filteredData, (d) => d.count) || 1])
       .range([6, 30]);
 
     const color = d3.scaleOrdinal(d3.schemeTableau10);
@@ -158,7 +187,7 @@
       .text(yLabel);
 
     // Prepare nodes with initial positions and radius for simulation
-    const nodes = displayedData.map((d) => ({
+    const nodes = filteredDisplayed.map((d) => ({
       ...d,
       x: x(d.avg_x),
       y: y(d.avg_y),
@@ -182,7 +211,7 @@
     // Draw all bubbles faded (background)
     chart
       .selectAll("circle.background")
-      .data(data)
+      .data(filteredData)
       .enter()
       .append("circle")
       .attr("class", "background")
@@ -213,8 +242,28 @@
       .on("mouseenter", (event, d) => showTooltip(event, d))
       .on("mousemove", (event) => {
         const containerRect = svg.getBoundingClientRect();
-        tooltip.style.left = event.clientX - containerRect.left + 10 + "px";
-        tooltip.style.top = event.clientY - containerRect.top + 35 + "px";
+        const tooltipRect = tooltip.getBoundingClientRect();
+
+        // Base offsets
+        let left = event.clientX - containerRect.left + 10;
+        let top = event.clientY - containerRect.top + 20;
+
+        // Shift left if tooltip exceeds right boundary
+        if (left + tooltipRect.width > containerRect.width) {
+          left = event.clientX - containerRect.left - tooltipRect.width - 10;
+        }
+
+        // Shift up if tooltip exceeds bottom boundary
+        if (top + tooltipRect.height > containerRect.height) {
+          top = event.clientY - containerRect.top - tooltipRect.height - 10;
+        }
+
+        // Prevent negative positions
+        left = Math.max(0, left);
+        top = Math.max(0, top);
+
+        tooltip.style.left = left + "px";
+        tooltip.style.top = top + "px";
       })
       .on("mouseleave", hideTooltip);
   }
@@ -233,7 +282,7 @@
   svg {
     font-family: system-ui, sans-serif;
     display: block;
-    width: 90%;
+    width: 100%;
     height: 100%; /* use 100% of container height */
   }
 

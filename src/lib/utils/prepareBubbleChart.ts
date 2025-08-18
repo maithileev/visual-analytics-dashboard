@@ -76,7 +76,7 @@ export function prepareBubbleChart(
     bubbleData = Array.from(neighborhoodMap.entries()).map(([label, val]) => ({
       label,
     avg_x: parseFloat((val.totalX / val.count).toFixed(2)),
-    avg_y: parseFloat((val.totalY / val.count).toFixed(2)),
+    avg_y: val.yCount > 0 ? parseFloat((val.totalY / val.yCount).toFixed(2)) : 0, // avoid NaN
     count: val.count
   }));
   }
