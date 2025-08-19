@@ -9,7 +9,8 @@ def cross_validate_rf(npz_path, pkl_path, model_output_path, n_splits=5):
     print("Loading investor feature matrices...")
     data = np.load(npz_path)
     X_amenities = data['amenities_numeric']
-    X_other = data['final_features']
+    numeric_categorical_features = ['numeric_features', 'categorical_features']  # keys in NPZ
+    X_other = np.hstack([data['numeric_features'], data['categorical_features']])
     X = np.hstack([X_amenities, X_other])
 
     print("Loading investor target variable from pickle...")
@@ -55,8 +56,8 @@ def cross_validate_rf(npz_path, pkl_path, model_output_path, n_splits=5):
 
 if __name__ == "__main__":
     cross_validate_rf(
-        npz_path='../../static/investor_features.npz',
-        pkl_path='../../static/investor_features.pkl',
+        npz_path='../../static/preprocessed_data/investor_features.npz',
+        pkl_path='../../static/preprocessed_data/investor_features.pkl',
         model_output_path='../models/investor_rf_model.joblib',
         n_splits=5
     )

@@ -85,7 +85,7 @@ export function groupAverageRevenueByNeighborhood(data: any[]) {
 
 export function calculateOverallOccupancyRate(rows: any[]): number {
   let totalOccupiedDays = 0;
-  let listingCount = 0;
+  let totalAvailability = 0;
 
   rows.forEach((row) => {
     let occRaw = row.estimated_occupancy_l365d;
@@ -93,18 +93,30 @@ export function calculateOverallOccupancyRate(rows: any[]): number {
       occRaw = occRaw.replace(/[^0-9.]/g, '');
     }
     const occupied = parseFloat(occRaw);
-    if (!isNaN(occupied)) {
+
+    let availRaw = row.availability_365;
+    if (typeof availRaw === 'string') {
+      availRaw = availRaw.replace(/[^0-9.]/g, '');
+    }
+    const availability = parseFloat(availRaw);
+
+    if (!isNaN(occupied) && !isNaN(availability) && availability > 0) {
       totalOccupiedDays += occupied;
-      listingCount += 1;
+      totalAvailability += availability;
     }
   });
 
-  if (listingCount === 0) return 0;
-  console.log("Listings ", listingCount)
-  console.log("Occupancy rate", totalOccupiedDays)
-  const overallRate = (totalOccupiedDays / listingCount) * (100 / 365);
+  if (totalAvailability === 0) return 0;
+
+  const overallRate = (totalOccupiedDays / totalAvailability) * 100;
+  console.log("Total listings considered:", rows.length);
+  console.log("Total occupied days:", totalOccupiedDays);
+  console.log("Total availability days:", totalAvailability);
+  console.log("Overall occupancy rate:", overallRate.toFixed(2));
+
   return parseFloat(overallRate.toFixed(2));
 }
+
 
 
 /**

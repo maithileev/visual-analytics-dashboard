@@ -26,10 +26,10 @@ app.add_middleware(
 
 # Load models and data at startup
 df_tourist = pd.read_pickle('../../static/preprocessed_data/tourist_features.pkl')
-df_investor = pd.read_pickle('../../static/investor_features.pkl')
+df_investor = pd.read_pickle('../../static/preprocessed_data/investor_features.pkl')
 
 npz_tourist = np.load('../../static/preprocessed_data/tourist_features.npz')
-npz_investor = np.load('../../static/investor_features.npz')
+npz_investor = np.load('../../static/preprocessed_data/investor_features.npz')
 
 model_tourist = joblib.load('../models/tourist_rf_model.joblib')
 model_investor = joblib.load('../models/investor_rf_model.joblib')
@@ -99,7 +99,6 @@ async def recommend_tourist(
 
     return {"recommendations": recommendations}
 
-
 @app.get("/recommend/investor")
 async def recommend_investor(
     min_price: float = Query(None, ge=0),
@@ -112,43 +111,42 @@ async def recommend_investor(
 ):
     filtered = df_investor.copy()
 
-    print(df_investor.columns)
-
+    # Apply filters
     if min_price is not None:
         filtered = filtered[filtered['price'] >= min_price]
-
     if max_price is not None:
         filtered = filtered[filtered['price'] <= max_price]
-
     if min_occupancy is not None:
         filtered = filtered[filtered['estimated_occupancy_l365d'] >= min_occupancy]
-
     if minimum_nights is not None:
         filtered = filtered[filtered['minimum_nights'] <= minimum_nights]
-
     if property_type_code is not None:
         filtered = filtered[filtered['property_type_code'] == property_type_code]
-
     if neighbourhood_code is not None:
         filtered = filtered[filtered['neighbourhood_code'] == neighbourhood_code]
 
     valid_indices = filtered.index
-    amenities = npz_investor['amenities_numeric'][valid_indices]
-    features = np.hstack([
-        npz_tourist['numeric_features'][valid_indices],
-        npz_tourist['categorical_features'][valid_indices]
-    ])
-    X = np.hstack([amenities, features])
 
+    # Build feature matrix
+    amenities = npz_investor['amenities_numeric'][valid_indices]
+    numeric = npz_investor['numeric_features'][valid_indices]
+    categorical = npz_investor['categorical_features'][valid_indices]
+    X = np.hstack([amenities, numeric, categorical])
+
+    # Predict
     preds = model_investor.predict(X)
+    listing_ids = npz_investor['listing_ids'][valid_indices]
+    listing_urls = npz_investor['listing_urls'][valid_indices]
+
     filtered = filtered.copy()
     filtered['predicted_score'] = preds
+    filtered['listing_id'] = listing_ids
+    filtered['listing_url'] = listing_urls
 
     top = filtered.sort_values(by='predicted_score', ascending=False).head(limit)
-    recommendations = top[['id', 'predicted_score']].to_dict(orient='records')
+    recommendations = top[['listing_id', 'listing_url', 'predicted_score']].to_dict(orient='records')
 
     return {"recommendations": recommendations}
-
 
 @app.get("/test")
 async def test_connection():
