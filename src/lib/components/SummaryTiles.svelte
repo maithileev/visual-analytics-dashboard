@@ -5,48 +5,58 @@
   export let unit: string = "";
 
   const BAR_WIDTH = 200;
-  const MIN_VISIBLE_PERCENT = 5; // ensures visibility of very small values
-
-  // Compute the max for normalization
-  $: maxValue = Math.max(overviewValue, selectedValue ?? 0, 1);
-
-  // Compute raw common percent
-  $: rawCommonPercent = selectedValue !== null
-    ? (Math.min(overviewValue, selectedValue) / maxValue) * 100
-    : 100;
-
-  // Enforce a minimum visible percentage only if non-zero
-  $: adjustedCommonPercent = (selectedValue !== null && rawCommonPercent > 0 && rawCommonPercent < MIN_VISIBLE_PERCENT)
-    ? MIN_VISIBLE_PERCENT
-    : rawCommonPercent;
-
-  // Adjust diff percent accordingly
-  $: adjustedDiffPercent = selectedValue !== null
-    ? 100 - adjustedCommonPercent
-    : 0;
-
-  // Difference color (green if selected > overview, else red)
-  $: diffColor = selectedValue !== null && selectedValue > overviewValue
-    ? "#22c55e"  // green
-    : "#ef4444"; // red
-
-  // Final gradient style
-  $: barBackground = selectedValue === null
-    ? "#2563eb"
-    : `linear-gradient(to right, 
-        #2563eb 0%, 
-        #2563eb ${adjustedCommonPercent}%, 
-        ${diffColor} ${adjustedCommonPercent}%, 
-        ${diffColor} 100%)`;
+  const MIN_VISIBLE_PERCENT = 5;
 
   // Tooltip state
   let tooltipVisible = false;
   let tooltipX = 0;
   let tooltipY = 0;
 
+  // Reactive calculations
+  $: maxValue = Math.max(overviewValue, selectedValue ?? 0, 1);
+
+  // Percent of the bar for common value
+  $: commonPercent =
+    selectedValue !== null
+      ? (Math.min(overviewValue, selectedValue) / maxValue) * 100
+      : 100;
+
+  $: adjustedCommonPercent =
+    selectedValue !== null &&
+    commonPercent > 0 &&
+    commonPercent < MIN_VISIBLE_PERCENT
+      ? MIN_VISIBLE_PERCENT
+      : commonPercent;
+
+  $: adjustedDiffPercent =
+    selectedValue !== null ? 100 - adjustedCommonPercent : 0;
+
+  // Difference in percentage
+  $: percentDiff =
+    selectedValue !== null
+      ? ((selectedValue - overviewValue) / overviewValue) * 100
+      : 0;
+
+  // Gradient bar: shades of blue
+  $: barBackground =
+    selectedValue === null
+      ? "#2563eb"
+      : `linear-gradient(to right,
+          #2563eb 0%,
+          #2563eb ${adjustedCommonPercent}%,
+          #93c5fd ${adjustedCommonPercent}%,
+          #93c5fd 100%)`;
+
   // Tooltip text
-  $: tooltipText = `${label} Overview: ${overviewValue}${unit}` + 
-    (selectedValue !== null ? ` | Selected: ${selectedValue}${unit}` : '');
+  $: tooltipText =
+    `${label} Overview: ${overviewValue}${unit}` +
+    (selectedValue !== null ? ` | Selected: ${selectedValue}${unit}` : "");
+
+  // Difference label
+  $: diffText =
+    selectedValue !== null
+      ? `${percentDiff > 0 ? "+" : ""}${percentDiff.toFixed(2)}%`
+      : "";
 </script>
 
 <div class="kpi-card">
@@ -73,7 +83,9 @@
       on:mouseleave={() => (tooltipVisible = false)}
       aria-label="Comparison bar"
       role="img"
-    ></div>
+    >
+      <span class="bar-diff-text">{diffText}</span>
+    </div>
   {/if}
 </div>
 
@@ -90,7 +102,7 @@
     padding: 1.5rem;
     border-radius: 0.8rem;
     box-shadow: 0 4px 10px rgb(0 0 0 / 0.05);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     color: #222;
     user-select: none;
   }
@@ -118,11 +130,24 @@
   }
 
   .bar-container {
+    position: relative;
     height: 20px;
     border-radius: 10px;
     cursor: pointer;
     user-select: none;
     box-shadow: inset 0 0 5px rgb(0 0 0 / 0.1);
+  }
+
+  .bar-diff-text {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); /* subtle shadow for readability */
+    pointer-events: none;
   }
 
   .tooltip {
