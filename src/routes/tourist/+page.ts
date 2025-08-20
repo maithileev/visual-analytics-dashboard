@@ -160,8 +160,8 @@ const overallRoomTypeData = aggregateRoomType(detailed_data_rows); // if selecte
 const touristRatingData = aggregateAverageRating(detailed_data_rows);
 
 // top 3 neighborhoods
-const topNeighborhoods = await loadAndAggregateTopNeighborhoods(fetch);
-const top3Neighborhoods = topNeighborhoods.slice(0,3);
+const top3Neighborhoods = await loadAndAggregateTopNeighborhoods(fetch);
+// const top3Neighborhoods = topNeighborhoods.slice(0,3);
 console.log("top3Neighborhoods" , top3Neighborhoods)
 
 //Average Availability for 365

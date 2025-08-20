@@ -9,6 +9,8 @@ import {preprocessSentimentData} from '$lib/utils/mapDataHelpers';
 import { extractRadarData } from '$lib/utils/prepareRadarData';
 import {computeOverallRadarMetrics} from '$lib/utils/radarNormalization'
 import { getTopHosts } from '$lib/utils/getTopHosts';
+import { precomputeRadarData } from '$lib/utils/precomputeRadarData';
+
 
 let neighborhood: string | null = null;
 
@@ -62,7 +64,6 @@ export const load: PageLoad =  async function load({ fetch }) {
     const trimmed = value.trim().toLowerCase();
 
     if (trimmed.includes('applied')) return 'Applied';
-    if (trimmed.includes('exempt')) return 'Exempt';
     if (/^it[0-9a-z]+$/i.test(value.trim())) return 'Has License'; // Starts with "IT", alphanumeric
     if (/^\d+$/.test(trimmed)) return 'No Info'; // Only numbers (invalid)
   
@@ -81,7 +82,7 @@ export const load: PageLoad =  async function load({ fetch }) {
   }
 
   const licenseSummary = countLicense(detailed_data);
-
+  console.log("License summary is -", licenseSummary);
   type DataRow = Record<string, string>;
 
   function countBooleanStatus(
@@ -173,49 +174,19 @@ const avgEstimatedRevenueRounded = avgEstimatedRevenue.toFixed(2);
 const avgRevenueByNeighborhood = groupAverageRevenueByNeighborhood(detailed_data);
 console.log("Average Revenue data - ", avgRevenueByNeighborhood)
 
-const bubbleData = prepareBubbleChart(detailed_data_rows, 'neighbourhood_cleansed', 'estimated_occupancy_l365d', 'review_scores_rating');
+const bubbleData = prepareBubbleChart(detailed_data_rows, 'neighbourhood_cleansed', 'estimated_occupancy_l365d', 'review_scores_rating', 'availability_365');
 
 //ROI
+
 const radarListings = extractRadarData(detailed_data_rows);
 console.log('Extracted count:', radarListings.length); // ~10k
+const precomputedData = precomputeRadarData(radarListings);
 
 const overallRadarData = computeOverallRadarMetrics(radarListings);
 console.log('Aggregated:', overallRadarData); // single object with averages
 
-const topHostsCalculated = getTopHosts(detailed_data_rows, 3);
 
-//Top Hosts 
-const topHosts = [{
-  host_name: "MariaNapoli",
-  estimated_revenue_l365d: 72000,
-  calculated_host_listings_count: 4,
-  estimated_occupancy_l365d: 87,
-  price_min: 95,
-  price_max: 180,
-  host_is_superhost: true,
-  host_since: "2023-03-23"
-},
-{
-  host_name: "MariaNapoli",
-  estimated_revenue_l365d: 72000,
-  calculated_host_listings_count: 4,
-  estimated_occupancy_l365d: 87,
-  price_min: 95,
-  price_max: 180,
-  host_is_superhost: true,
-  host_since: "2023-03-23"
-},
-{
-  host_name: "MariaNapoli",
-  estimated_revenue_l365d: 72000,
-  calculated_host_listings_count: 4,
-  estimated_occupancy_l365d: 87,
-  price_min: 95,
-  price_max: 180,
-  host_is_superhost: true,
-  host_since: "2023-03-23"
-}
-]
+const topHostsCalculated = getTopHosts(detailed_data_rows, 3);
 
 return {
     geojson,
@@ -231,8 +202,8 @@ return {
    processedSentimentData,
    radarListings,
    overallRadarData,
-   topHosts,
-   topHostsCalculated
+   topHostsCalculated,
+   precomputedData
   };
 
 }

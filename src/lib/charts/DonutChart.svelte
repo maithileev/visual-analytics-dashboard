@@ -18,6 +18,7 @@
   let selectedValue: number | null = null;
 
   let needsRedraw = true;
+  let centerPercent = 0;
 
   $: if (summaryData && summaryData.overview) needsRedraw = true;
 
@@ -54,10 +55,20 @@
     tooltip.style.top = event.clientY - wrapperRect.top - 30 + "px";
   }
 
+  function updateCenterPercent(isRegion:boolean) {
+    const source =
+      isRegion && summaryData.region
+        ? summaryData.region
+        : summaryData.overview;
+    const total = d3.sum(Object.values(source));
+    const value = source["Has License"] ?? 0;
+    centerPercent = total ? (value / total) * 100 : 0;
+  }
+
   function drawChart() {
     const width = 300;
-    const height = 140; // reduced from 180
-    const radius = Math.min(width / 2, height);
+    const height = 130;
+    const radius = Math.min(width / 2, height * 0.7) * 1.1;
 
     d3.select(svg).selectAll("*").remove();
 
@@ -81,29 +92,30 @@
       .attr("role", "img")
       .attr("aria-label", "Half-donut chart")
       .append("g")
-      .attr("transform", `translate(${width / 2}, ${height * 0.8})`);
+      .attr("transform", `translate(${width / 2}, ${height * 0.75})`);
+
     const pie = d3
       .pie<{ label: string; value: number }>()
       .sort(null)
       .value((d) => d.value)
-      .startAngle(-0.5 * Math.PI) // top
-      .endAngle(0.5 * Math.PI) // bottom
+      .startAngle(-0.5 * Math.PI)
+      .endAngle(0.5 * Math.PI)
       .padAngle(0.02);
 
     const arcInner = d3
       .arc<d3.PieArcDatum<{ label: string; value: number }>>()
       .innerRadius(radius * 0.5)
-      .outerRadius(radius * 0.65); // slightly smaller so all slices fit
+      .outerRadius(radius * 0.65);
 
     const arcOuter = d3
       .arc<d3.PieArcDatum<{ label: string; value: number }>>()
       .innerRadius(radius * 0.75)
-      .outerRadius(radius * 0.95);
+      .outerRadius(radius * 0.9);
 
     const overviewDataArray = objToArray(summaryData.overview);
     const totalOverview = d3.sum(overviewDataArray, (d) => d.value);
 
-    // Default select "Has License" if none selected
+    // Default select "Has License"
     const hasLicenseObj = overviewDataArray.find(
       (d) => d.label === "Has License",
     );
@@ -112,73 +124,9 @@
       selectedValue = hasLicenseObj.value;
     }
 
-    const centerGroup = svgSelection.append("g").attr("class", "center-text");
+    // Set initial center percent
+    updateCenterPercent(summaryData.region?true:false);
 
-    const centerLabel = centerGroup
-      .append("text")
-      .attr("text-anchor", "middle")
-      .attr("dy", "-1em")
-      .attr("font-weight", "600")
-      .attr("font-size", "1.2rem")
-      .attr("fill", "#333");
-
-    const centerOverview = centerGroup
-      .append("text")
-      .attr("text-anchor", "middle")
-      .attr("dy", "0.5em")
-      .attr("font-weight", "400")
-      .attr("font-size", "0.9rem")
-      .attr("fill", "#555");
-
-    const centerRegion = centerGroup
-      .append("text")
-      .attr("text-anchor", "middle")
-      .attr("dy", "2.2em")
-      .attr("font-weight", "400")
-      .attr("font-size", "0.9rem")
-      .attr("fill", "#777");
-
-    function updateCenterText(
-      label: string | null,
-      regionRawValue: number | null,
-    ) {
-      if (!label) {
-        centerLabel.text("");
-        centerOverview.text("");
-        centerRegion.text("");
-        return;
-      }
-
-      const overviewTotal = d3.sum(Object.values(summaryData.overview));
-      const overviewVal = summaryData.overview[label] ?? 0;
-      const overviewPct = ((overviewVal / overviewTotal) * 100).toFixed(1);
-
-      const hasRegion =
-        summaryData.region && summaryData.region[label] !== undefined;
-      const regionVal = hasRegion ? summaryData.region![label] : null;
-      const regionTotal = summaryData.region
-        ? d3.sum(Object.values(summaryData.region))
-        : null;
-      const regionPct =
-        regionVal !== null && regionTotal
-          ? ((regionVal / regionTotal) * 100).toFixed(1)
-          : null;
-
-      centerLabel.text(label);
-      centerOverview.text(`Ov: ${overviewPct}%`);
-
-      if (regionPct !== null && regionVal !== null) {
-        const delta = (+regionPct - +overviewPct).toFixed(1);
-        const sign = +delta > 0 ? "+" : "";
-        centerRegion.text(`Reg: ${regionPct}% (${sign}${delta}%)`);
-      } else {
-        centerRegion.text("");
-      }
-    }
-
-    updateCenterText(selectedLabel, selectedValue);
-
-    // Overview arcs
     const overviewArcs = svgSelection
       .selectAll(".arc-overview")
       .data(pie(overviewDataArray))
@@ -236,10 +184,10 @@
       .on("click", (event, d) => {
         selectedLabel = d.data.label;
         selectedValue = d.data.value;
-        updateCenterText(selectedLabel, selectedValue);
+        updateCenterPercent(false);
       });
 
-    // Optional: region arcs (if provided)
+    // Region arcs
     if (summaryData.region) {
       const regionDataArray = objToArray(summaryData.region).sort(
         (a, b) => allLabels.indexOf(a.label) - allLabels.indexOf(b.label),
@@ -306,7 +254,7 @@
         .on("click", (event, d) => {
           selectedLabel = d.data.label;
           selectedValue = d.data.value;
-          updateCenterText(selectedLabel, selectedValue);
+          updateCenterPercent(true); // outer (region) value
         });
     }
   }
@@ -315,29 +263,18 @@
 <div class="kpi-card">
   <h3 class="kpi-label">{label}</h3>
   <hr />
-  <div class="donut-container">
-    <svg bind:this={svg}></svg>
+  <div class="donut-label">
+    {selectedLabel}: {centerPercent.toFixed(1)}%
   </div>
+  <svg bind:this={svg}></svg>
   <div class="tooltip" bind:this={tooltip}></div>
 </div>
-
-<!-- <div class="legend">
-    {#each allLabels as label}
-      <div class="legend-item">
-        <div
-          class="legend-color"
-          style="background-color: {color(label)}"
-        ></div>
-        {label}
-      </div>
-    {/each}
-  </div> -->
 
 <style>
   .kpi-card {
     width: 235px;
     background: white;
-    padding: 0.8rem; /* reduced padding */
+    padding: 0.6rem;
     border-radius: 0.8rem;
     box-shadow: 0 4px 10px rgb(0 0 0 / 0.05);
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -348,32 +285,38 @@
   .kpi-label {
     font-size: 1.2rem;
     font-weight: 700;
-    margin: 0 0 0.4rem 0; /* reduced bottom margin */
+    margin: 0 0 0.4rem 0;
     text-align: center;
     color: #333;
   }
 
-  .donut-container {
-    width: 100%;
-    max-width: 220px;
-    height: 140px; /* enough for half-donut */
-    margin: 0 auto;
+  .donut-label {
+    text-align: right;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #1e3a8a;
+    margin-bottom: 0.1rem;
   }
 
-  .donut-container svg {
+  .donut-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* center label and svg horizontally */
     width: 100%;
-    height: 100%;
-    display: block;
+    margin-bottom: 0.1rem; /* reduce bottom spacing */
   }
 
   hr {
     border: none;
     border-top: 1px solid #ddd;
-    margin-bottom: 0.5rem; /* adjust this value as needed */
+    margin-bottom: 0.1rem;
   }
 
   svg {
-    display: column;
+    display: block;
+    margin: 0 auto;
+    height: 120px; /* reduce SVG height */
+    width: 100%;   /* keep width proportional */
   }
 
   .tooltip {
@@ -391,30 +334,4 @@
     white-space: nowrap;
     z-index: 10;
   }
-
-  /* .legend {
-    display: flex;
-    overflow-x: auto;
-    padding: 4px 0;
-    border-top: 1px solid #ddd;
-    margin-top: 12px;
-    font-size: 0.75rem;
-    color: #666;
-    user-select: none;
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    margin-right: 10px;
-    white-space: nowrap;
-  } */
-
-  /* .legend-color {
-    width: 12px;
-    height: 12px;
-    border-radius: 2px;
-    margin-right: 6px;
-    flex-shrink: 0;
-  } */
 </style>

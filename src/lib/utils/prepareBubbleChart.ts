@@ -39,12 +39,12 @@ export function prepareBubbleChart(
     const y = parseFloat(yRaw);
 
     if (isNaN(x) || isNaN(avail) || avail <= 0) {
-      console.log(
-        `Row ${rowId} skipped:`,
-        `x=${xRaw} (${x}),`,
-        `y=${yRaw} (${y}),`,
-        `availability=${aRaw} (${avail})`
-      );
+      // console.log(
+      //   `Row ${rowId} skipped:`,
+      //   `x=${xRaw} (${x}),`,
+      //   `y=${yRaw} (${y}),`,
+      //   `availability=${aRaw} (${avail})`
+      // );
       return;
     }
 

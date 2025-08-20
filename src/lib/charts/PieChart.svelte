@@ -98,7 +98,7 @@
     }
 
     // Initialize to overall
-    setCenterData(false);
+    setCenterData(summaryData.region ? true:false);
 
     function arcTween(arc: d3.Arc<any, any>, startRadius: number, endRadius: number) {
       return function (d: any) {
@@ -167,7 +167,7 @@
   }
 </script>
 
-<div class="kpi-card">
+<!-- <div class="kpi-card">
   <h3 class="kpi-label">{label}</h3>
   <hr />
   <svg bind:this={svg}></svg>
@@ -175,13 +175,22 @@
   <div class="center-info">
     {centerLabel}: {centerPercent.toFixed(1)}%
   </div>
+</div> -->
+<div class="kpi-card">
+  <h3 class="kpi-label">{label}</h3>
+  <hr />
+  <div class="donut-label">
+    Superhost: {centerPercent.toFixed(1)}%
+  </div>
+  <svg bind:this={svg}></svg>
+  <div class="tooltip" bind:this={tooltip}></div>
 </div>
 
 <style>
   .kpi-card {
     width: 235px;
     background: white;
-    padding: 0.8rem;
+    padding: 0.4rem 0.6rem; /* reduce vertical padding */
     border-radius: 0.8rem;
     box-shadow: 0 4px 10px rgb(0 0 0 / 0.05);
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -200,6 +209,8 @@
   svg {
     display: block;
     margin: 0 auto;
+    height: 125px; /* reduce SVG height */
+    width: auto;   /* keep width proportional */
   }
 
   hr {
@@ -233,4 +244,20 @@
     white-space: nowrap;
     z-index: 10;
   }
+
+  .donut-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* left align by default */
+}
+
+.donut-label {
+  text-align: right;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1e3a8a; /* Indigo tone */
+  margin-bottom: 0.1rem;
+}
+
 </style>

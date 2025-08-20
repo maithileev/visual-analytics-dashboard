@@ -329,7 +329,9 @@ selectedBinnedData={selectedData ?? []}
     </div>
     <div class="chart-container legend-container">
       <h2 class="text-xl font-bold mb-4">Top Neighborhoods for Tourists</h2>
+      <div class="carousel-wrapper">
       <TopNeighborhoods neighborhoods={data.top3Neighborhoods} />
+      </div>
     <!-- <div class="bg-white p-4 rounded shadow"></div> -->
   </div>
 </section>

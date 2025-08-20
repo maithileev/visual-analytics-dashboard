@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { page } from '$app/stores';
   import { currentTab } from "$lib/stores";
   import SummaryTiles from "$lib/components/SummaryTiles.svelte";
   import Map from "$lib/components/Map.svelte";
@@ -16,11 +17,13 @@
   import {
     aggregateRadarMetrics,
     normalizeRadarMetrics,
-    findMaxValues,
+    findMinMaxValues,
   } from "$lib/utils/radarNormalization";
   import type { RadarInputListing } from "$lib/utils/prepareRadarData";
   import RadarChart from "$lib/charts/RadarChart.svelte";
   import TopHosts from "$lib/components/TopHosts.svelte";
+import type {RawMetrics, NormalizedMetrics} from "$lib/utils/radarNormalization"
+
 
   type PageData = {
     geojson: any;
@@ -36,8 +39,8 @@
     processedSentimentData: any;
     radarListings: any;
     overallRadarData: any;
-    topHosts: any;
     topHostsCalculated: any;
+    precomputedData: any;
   };
 
   export let data: PageData;
@@ -127,37 +130,51 @@
   //   // Filter rows belonging to the selected neighborhood
   $: selectedNeighborhoodRowsForOccupancy = $selectedNeighborhood
     ? $detailedRows.filter(
-        (row) =>
-          (row["neighbourhood_cleansed"]?.trim().toLowerCase() || "") ===
-          $selectedNeighborhood.trim().toLowerCase(),
-      )
-    : null;
-
+        (row) => {
+          const rowId = row.id ?? "(no id)";
+          const neighborhoodName = row["neighbourhood_cleansed"]?.trim().toLowerCase() || "";
+          
+          if (neighborhoodName === $selectedNeighborhood.trim().toLowerCase()) {
+            return true;
+          } else {
+            return false;
+          }
+        })
+      : null;
   // // Compute occupancy rate in %
   $: selectedNeighborhoodOccupancyRate =
-    selectedNeighborhoodRowsForOccupancy &&
-    selectedNeighborhoodRowsForOccupancy.length
-      ? (() => {
-          let totalOccupiedDays = 0;
-          let listingCount = 0;
+  selectedNeighborhoodRowsForOccupancy &&
+  selectedNeighborhoodRowsForOccupancy.length
+    ? (() => {
+        let totalOccupiedDays = 0;
+        let totalAvailability = 0;
 
-          for (const row of selectedNeighborhoodRowsForOccupancy) {
-            let occRaw = row.estimated_occupancy_l365d;
-            if (typeof occRaw === "string") {
-              occRaw = occRaw.replace(/[^0-9.]/g, "");
-            }
-            const occupied = parseFloat(occRaw);
-            if (!isNaN(occupied)) {
-              totalOccupiedDays += occupied;
-              listingCount += 1;
-            }
+        for (const [index, row] of selectedNeighborhoodRowsForOccupancy.entries()) {
+          let occRaw = row.estimated_occupancy_l365d;
+          if (typeof occRaw === "string") {
+            occRaw = occRaw.replace(/[^0-9.]/g, "");
           }
+          const occupied = parseFloat(occRaw);
 
-          if (listingCount === 0) return null;
-          const rate = (totalOccupiedDays / listingCount) * (100 / 365);
-          return +rate.toFixed(2); // Rounded to 2 decimals
-        })()
-      : null;
+          let availRaw = row.availability_365;
+          if (typeof availRaw === "string") {
+            availRaw = availRaw.replace(/[^0-9.]/g, "");
+          }
+          const availability = parseFloat(availRaw);
+
+          if (!isNaN(occupied) && !isNaN(availability) && availability > 0) {
+            totalOccupiedDays += occupied;
+            totalAvailability += availability;
+          } else {
+            console.log(`Row ${index} skipped in occupancy calc: occupied=${occRaw} (${occupied}), availability=${availRaw} (${availability})`);
+          }
+        }
+
+        if (totalAvailability === 0) return null;
+        const rate = (totalOccupiedDays / totalAvailability) * 100;
+        return +rate.toFixed(2); // Rounded to 2 decimals
+      })()
+    : null;
 
   //Licensed
   function getLicenseCategory(value: string | undefined): string {
@@ -166,29 +183,11 @@
     const trimmed = value.trim().toLowerCase();
 
     if (trimmed.includes("applied")) return "Applied";
-    if (trimmed.includes("exempt")) return "Exempt";
     if (/^it[0-9a-z]+$/i.test(value.trim())) return "Has License"; // Starts with "IT", alphanumeric
     if (/^\d+$/.test(trimmed)) return "No Info"; // Only numbers (invalid)
 
     return "No Info";
   }
-
-  // Reactive statement to compute license summary for selected region/neighborhood
-  // $: selectedRegionLicenseSummary = $selectedNeighborhood
-  //   ? (() => {
-  //       const filteredRows = $detailedRows.filter(row =>
-  //         (row['neighbourhood_cleansed']?.trim().toLowerCase() || '') === $selectedNeighborhood.trim().toLowerCase()
-  //       );
-  //       const counts: Record<string, number> = {};
-  //       filteredRows.forEach(row => {
-  //         const category = getLicenseCategory(row['license']);
-  //         counts[category] = (counts[category] || 0) + 1;
-  //       });
-  //       return counts;
-  //     })()
-  //   : null;
-
-  //     $: console.log('summaryData', selectedRegionLicenseSummary);
 
   // Reviews
   $: selectedNeighborhoodReviews =
@@ -276,43 +275,62 @@
       : null;
 
   //ROI
-  // 1. filter listings based on selectedNeighborhood (safe string checks)
-  $: filteredListings = $selectedNeighborhood
-    ? data.radarListings.filter((l) => {
-        const listingNeighborhood =
-          typeof l.neighborhood === "string"
-            ? l.neighborhood.trim().toLowerCase()
-            : "";
-        const selNeighborhood =
-          typeof $selectedNeighborhood === "string"
-            ? $selectedNeighborhood.trim().toLowerCase()
-            : "";
-        return listingNeighborhood === selNeighborhood;
-      })
-    : data.radarListings;
+type PrecomputedNeighborhoodData = {
+  raw: RawMetrics;
+  normalized: NormalizedMetrics;
+};
 
-  // 2. aggregate raw metrics on filtered listings
-  $: neighborhoodRawMetrics = aggregateRadarMetrics(filteredListings);
+// Empty fallback metrics
+const emptyRaw: RawMetrics = {
+  roi: 0,
+  occupancyRate: 0,
+  minNights: 0,
+  reviewCount: 0,
+  rating: 0,
+};
 
-  // 3. compute max values for normalization, fallback to overall maxValues
-  $: neighborhoodMaxValues = filteredListings.length
-    ? findMaxValues(filteredListings)
-    : data.overallRadarData.maxValues;
+const emptyNormalized: NormalizedMetrics = {
+  roi: 0,
+  occupancyRate: 0,
+  minNights: 0,
+  reviewCount: 0,
+  rating: 0,
+};
 
-  // 4. normalize metrics for neighborhood or null if none selected
-  $: neighborhoodNormalized =
-    $selectedNeighborhood && filteredListings.length > 0
-      ? normalizeRadarMetrics(neighborhoodRawMetrics, neighborhoodMaxValues)
-      : null;
+// Type guard
+function isNeighborhoodData(obj: any): obj is PrecomputedNeighborhoodData {
+  return obj && obj.raw && obj.normalized;
+}
 
-  $: {
-    console.log("Selected Neighborhood:", $selectedNeighborhood);
-    console.log("Filtered Listings count:", filteredListings.length);
-    console.log("Raw metrics:", neighborhoodRawMetrics);
-    console.log("Max values:", neighborhoodMaxValues);
-    console.log("Normalized:", neighborhoodNormalized);
-  }
+// Get neighborhood data safely
+$: neighborhoodData = $selectedNeighborhood
+  ? data.precomputedData.neighborhoods[$selectedNeighborhood]
+  : null;
 
+// Assign metrics with safe fallback
+$: neighborhoodRawMetrics = isNeighborhoodData(neighborhoodData)
+  ? neighborhoodData.raw
+  : emptyRaw;
+
+$: neighborhoodNormalized = isNeighborhoodData(neighborhoodData)
+  ? neighborhoodData.normalized
+  : emptyNormalized;
+
+// Fallback ranges for chart axis scaling
+$: neighborhoodRanges = data.precomputedData.ranges;
+
+console.log("Precomputed Radar data", data.precomputedData.overall
+);
+
+data.precomputedData.overall
+$: {
+  console.log("Selected Neighborhood:", $selectedNeighborhood);
+  console.log("Neighborhood Data:", neighborhoodData);
+  console.log("Raw metrics:", neighborhoodRawMetrics);
+  console.log("Normalized metrics:", neighborhoodNormalized);
+}
+
+console.log("Top Host data -",data.topHostsCalculated);
   // License summary
   $: selectedRegionLicenseSummary =
     $selectedNeighborhood && $detailedRows
@@ -425,16 +443,19 @@
       Neighborhood Performance & ROI Radar
     </h2>
     <RadarChart
-      overallData={data.overallRadarData.normalized}
-      {neighborhoodNormalized}
-    />
-  </div>
+    overallData={{
+      rawMetrics: data.precomputedData.overall.raw,
+      normalized: data.precomputedData.overall.normalized
+    }}
+      neighborhoodNormalized={neighborhoodNormalized}
+    neighborhoodRawMetrics={neighborhoodRawMetrics}/> 
+    </div>
 </section>
 
 <section class="dashboard-row-2">
   <!-- <div class="bg-white p-4 rounded shadow"><HorizontalBarChart data={data.instantBookableCounts} />
       </div> -->
-  <div>
+  <div class="chart-container legend-container">
     <h2 class="text-lg font-semibold mb-2">
       Neighborhood Popularity: Occupancy vs. Rating
     </h2>
@@ -446,6 +467,6 @@
   </div>
   <div class="chart-container legend-container">
     <h2 class="text-lg font-semibold mb-2">Top Earning Hosts</h2>
-    <TopHosts topHosts={data.topHostsCalculated} />
+    <TopHosts topHosts={[...data.topHostsCalculated]}/>
   </div>
 </section>

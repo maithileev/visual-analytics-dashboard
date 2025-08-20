@@ -30,8 +30,26 @@ function parsePrice(priceStr: string): number {
 function round(n: number, digits = 2) {
   return Math.round(n * 10 ** digits) / 10 ** digits;
 }
+
 const listing_url = `${base}/listings-detailed.csv`;
 const sentiment_url = `${base}/sentiment-by-neighbourhood.csv`;
+
+function normalize(value: number, min: number, max: number) {
+  if (max === min) return 0;
+  return (value - min) / (max - min);
+}
+
+function calculateStartingPrice(raw: number[]): number {
+  const prices = raw.filter(p => Number.isFinite(p) && p > 0).sort((a, b) => a - b);
+  if (prices.length === 0) return 0;
+  if (prices.length < 10) return prices[0];
+
+  const rank = 0.10 * (prices.length - 1);
+  const lo = Math.floor(rank);
+  const hi = Math.ceil(rank);
+  const w = rank - lo;
+  return lo === hi ? prices[lo] : prices[lo] * (1 - w) + prices[hi] * w;
+}
 
 export async function loadAndAggregateTopNeighborhoods(fetchFn: typeof fetch): Promise<NeighborhoodStats[]> {
   const [listingsResp, sentimentResp] = await Promise.all([
@@ -52,23 +70,13 @@ export async function loadAndAggregateTopNeighborhoods(fetchFn: typeof fetch): P
     skipEmptyLines: true,
   }).data;
 
-  console.log('Parsed listings count:', listings.length);
-  console.log('Parsed sentiments count:', sentiments.length);
-
-  // Map neighborhood → sentiment score
   const sentimentMap = new Map<string, number>();
   for (const row of sentiments) {
     const neighborhood = row.neighbourhood?.trim();
     const score = parseFloat(row.avg_sentiment);
-    if (neighborhood && !isNaN(score)) {
-      sentimentMap.set(neighborhood, score);
-    }
+    if (neighborhood && !isNaN(score)) sentimentMap.set(neighborhood, score);
   }
 
-  console.log('Sentiment map size:', sentimentMap.size);
-  console.log('Example sentiments:', Array.from(sentimentMap.entries()).slice(0, 3));
-
-  // Aggregate stats by neighborhood
   const neighborhoodGroups: Record<string, ListingRow[]> = {};
   for (const row of listings) {
     const n = row.neighbourhood_cleansed?.trim();
@@ -77,7 +85,7 @@ export async function loadAndAggregateTopNeighborhoods(fetchFn: typeof fetch): P
     neighborhoodGroups[n].push(row);
   }
 
-  const results: NeighborhoodStats[] = [];
+  const results: (NeighborhoodStats & { totalListings: number })[] = [];
 
   for (const [neighborhood, rows] of Object.entries(neighborhoodGroups)) {
     const sentiment = sentimentMap.get(neighborhood) ?? 0;
@@ -94,16 +102,14 @@ export async function loadAndAggregateTopNeighborhoods(fetchFn: typeof fetch): P
       const isInstant = r.instant_bookable === 't';
 
       if (!isNaN(rating)) ratings.push(rating);
-      if (!isNaN(price)) prices.push(price);
+      if (!isNaN(price) && price > 0) prices.push(price);
       if (!isNaN(reviews)) totalReviews += reviews;
       if (isInstant) instantBookableCount++;
     }
 
-    if (ratings.length < 5 || prices.length < 5) continue; // Filter sparse data
+    if (ratings.length < 5 || prices.length < 5) continue;
 
-    // Calculate 10th percentile of price as "starting price"
-    prices.sort((a, b) => a - b);
-    const p10 = prices[Math.floor(prices.length * 0.1)];
+    const p10 = calculateStartingPrice(prices);
 
     results.push({
       neighborhood,
@@ -112,9 +118,52 @@ export async function loadAndAggregateTopNeighborhoods(fetchFn: typeof fetch): P
       totalReviews,
       startingPrice: round(p10),
       percentInstantBookable: round((instantBookableCount / rows.length) * 100),
+      totalListings: rows.length, // ✅ added
     });
   }
 
-  return results.sort((a, b) => b.sentimentScore - a.sentimentScore || b.averageRating - a.averageRating);
-}
+  if (results.length === 0) return [];
 
+  // Compute min/max for normalization
+  const minSentiment = Math.min(...results.map(r => r.sentimentScore));
+  const maxSentiment = Math.max(...results.map(r => r.sentimentScore));
+  const minRating = Math.min(...results.map(r => r.averageRating));
+  const maxRating = Math.max(...results.map(r => r.averageRating));
+  const minReviews = Math.min(...results.map(r => r.totalReviews));
+  const maxReviews = Math.max(...results.map(r => r.totalReviews));
+  const minPrice = Math.min(...results.map(r => r.startingPrice));
+  const maxPrice = Math.max(...results.map(r => r.startingPrice));
+  const minInstant = Math.min(...results.map(r => r.percentInstantBookable));
+  const maxInstant = Math.max(...results.map(r => r.percentInstantBookable));
+  const minListings = Math.min(...results.map(r => r.totalListings));
+  const maxListings = Math.max(...results.map(r => r.totalListings));
+
+  // Add composite score including number of listings
+  const scoredResults = results.map(r => {
+    const sentimentNorm = normalize(r.sentimentScore, minSentiment, maxSentiment);
+    const ratingNorm = normalize(r.averageRating, minRating, maxRating);
+    const reviewsNorm = normalize(r.totalReviews, minReviews, maxReviews);
+    const priceNorm = 1 - normalize(r.startingPrice, minPrice, maxPrice); // lower better
+    const instantNorm = normalize(r.percentInstantBookable, minInstant, maxInstant);
+    const listingsNorm = normalize(r.totalListings, minListings, maxListings);
+
+    const compositeScore =
+      sentimentNorm * 0.25 +
+      ratingNorm * 0.25 +
+      reviewsNorm * 0.1 +
+      priceNorm * 0.15 +
+      instantNorm * 0.1 +
+      listingsNorm * 0.15;
+
+    return { ...r, compositeScore };
+  });
+
+  // Sort by composite score and take top 3
+  return scoredResults
+    .sort((a, b) => b.compositeScore - a.compositeScore)
+    .slice(0, 3)
+    .map(r => {
+      const { compositeScore, totalListings, ...rest } = r; // remove internal fields
+      return rest;
+    });
+}

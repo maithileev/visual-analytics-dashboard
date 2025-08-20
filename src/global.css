@@ -237,3 +237,14 @@ body {
 .neighborhood-table th:hover {
   background-color: #eaeaea;
 }
+
+.carousel-wrapper {
+  flex: 1;                /* take remaining space after heading */
+  min-height: 0;          /* allows flex child to shrink properly */
+  display: flex;
+}
+
+.carousel-wrapper :global(.carousel) {
+  flex: 1;                /* make carousel stretch full height */
+  display: flex;
+}
