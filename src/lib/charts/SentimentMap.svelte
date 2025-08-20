@@ -187,15 +187,15 @@
       .style("fill", "#333");
 
     // Label under axis
-    legendGroup
-      .append("text")
-      .attr("x", legendWidth / 2)
-      .attr("y", legendHeight + 26)
-      .attr("text-anchor", "middle")
-      .text("Sentiment Score")
-      .style("font-size", "11px")
-      .style("fill", "#333");
-  }
+  //   legendGroup
+  //     .append("text")
+  //     .attr("x", legendWidth / 2)
+  //     .attr("y", legendHeight + 26)
+  //     .attr("text-anchor", "middle")
+  //     .text("Sentiment Score")
+  //     .style("font-size", "11px")
+  //     .style("fill", "#333");
+ }
 </script>
 
 <svg bind:this={svg}></svg>

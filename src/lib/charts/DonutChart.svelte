@@ -55,13 +55,13 @@
     tooltip.style.top = event.clientY - wrapperRect.top - 30 + "px";
   }
 
-  function updateCenterPercent(isRegion:boolean) {
+  function updateCenterPercent(isRegion:boolean, selectedLabel:'Has License') {
     const source =
       isRegion && summaryData.region
         ? summaryData.region
         : summaryData.overview;
     const total = d3.sum(Object.values(source));
-    const value = source["Has License"] ?? 0;
+    const value = source[selectedLabel] ?? 0;
     centerPercent = total ? (value / total) * 100 : 0;
   }
 
@@ -125,7 +125,7 @@
     }
 
     // Set initial center percent
-    updateCenterPercent(summaryData.region?true:false);
+    updateCenterPercent(summaryData.region?true:false, "Has License");
 
     const overviewArcs = svgSelection
       .selectAll(".arc-overview")
@@ -184,7 +184,7 @@
       .on("click", (event, d) => {
         selectedLabel = d.data.label;
         selectedValue = d.data.value;
-        updateCenterPercent(false);
+        updateCenterPercent(false,selectedLabel);
       });
 
     // Region arcs
@@ -254,7 +254,7 @@
         .on("click", (event, d) => {
           selectedLabel = d.data.label;
           selectedValue = d.data.value;
-          updateCenterPercent(true); // outer (region) value
+          updateCenterPercent(true,selectedLabel); // outer (region) value
         });
     }
   }

@@ -246,9 +246,9 @@ function sortBy(column: keyof NeighborhoodStats) {
 <section class="kpi-grid">
   <div class="bg-white p-5 rounded shadow">
     <SummaryTiles
-      overviewValue={data.availableStays}
-      label="Available Stays"
-      selectedValue={selectedNeighborhoodAvailableListings}
+      overviewValue={data.averageRatingRounded}
+      selectedValue={selectedNeighborhoodAverageRating}
+      label="Average Rating"
     />
   </div>
   <div class="bg-white p-5 rounded shadow">
@@ -256,6 +256,7 @@ function sortBy(column: keyof NeighborhoodStats) {
       overviewValue={data.averagePricePerDayRounded}
       selectedValue={regionAverage}
       label="Average Price per night"
+      unit="€"
     />
   </div>
   <div class="bg-white p-5 rounded shadow">
@@ -269,9 +270,9 @@ function sortBy(column: keyof NeighborhoodStats) {
   </div>
   <div class="bg-white p-5 rounded shadow">
     <SummaryTiles
-      overviewValue={data.averageRatingRounded}
-      selectedValue={selectedNeighborhoodAverageRating}
-      label="Average Rating"
+      overviewValue={data.availableStays}
+      label="Available Stays"
+      selectedValue={selectedNeighborhoodAvailableListings}
     />
   </div>
   <div class="bg-white p-5 rounded shadow">
@@ -281,7 +282,7 @@ function sortBy(column: keyof NeighborhoodStats) {
 
 <section class="dashboard-row">
   <div class="map-container legend-container">
-    <h2 class="text-lg font-semibold mb-2">Rental Distribution Map</h2>
+    <h2 class="text-lg font-semibold mb-2">Average Rating by Neighborhood</h2>
     <ChloroplethMap
       geojson={data.geojson}
       values={data.touristRatingData}
@@ -307,7 +308,7 @@ function sortBy(column: keyof NeighborhoodStats) {
     />
   </div>
   <div class="chart-container legend-container">
-    <h2 class="text-lg font-semibold mb-2">Airbnb Rental Availability Overview </h2>
+    <h2 class="text-lg font-semibold mb-2"> Rental Availability Overview </h2>
     <HistogramChart 
 overallBinnedData={data.binnedDataOverall}
 selectedBinnedData={selectedData ?? []}

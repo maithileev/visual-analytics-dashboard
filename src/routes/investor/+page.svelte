@@ -51,6 +51,10 @@ import type {RawMetrics, NormalizedMetrics} from "$lib/utils/radarNormalization"
 
   let showSentiment = false;
 
+  function toggleView() {
+    showSentiment = !showSentiment;
+  }
+
   //for horizontal bar chaart
   let compareField = null;
   $: compareField = $selectedNeighborhood ? "compare" : null;
@@ -361,10 +365,10 @@ console.log("Top Host data -",data.topHostsCalculated);
   </div>
   <div class="bg-white p-5 rounded shadow">
     <SummaryTiles
-      overviewValue={data.averageMinNightsRounded}
-      label="Minimum Nights"
-      selectedValue={selectedAverageMinNights}
-      unit=""
+      overviewValue={data.avgEstimatedRevenueRounded}
+      selectedValue={selectedNeighborhoodAverageEstimatedRevenue}
+      label="Estimated Annual Revenue"
+      unit="€"
     />
   </div>
   <div class="bg-white p-5 rounded shadow">
@@ -385,25 +389,24 @@ console.log("Top Host data -",data.topHostsCalculated);
   </div>
   <div class="bg-white p-5 rounded shadow">
     <SummaryTiles
-      overviewValue={data.avgEstimatedRevenueRounded}
-      selectedValue={selectedNeighborhoodAverageEstimatedRevenue}
-      label="Estimated Annual Revenue"
+      overviewValue={data.averageMinNightsRounded}
+      label="Minimum Nights"
+      selectedValue={selectedAverageMinNights}
+      unit=""
     />
   </div>
+
 </section>
 
 <section class="dashboard-row">
   <div class="map-container legend-container">
-    <div class="flex items-center justify-between mb-2 w-full">
-      <h2 class="whitespace-nowrap overflow-hidden text-ellipsis max-w-[80%]">
+    <div class="header-container">
+      <h2>
         {showSentiment
           ? "Sentiment Across Neighborhoods"
           : "Annual Revenue Potential Across Neighborhoods"}
       </h2>
-      <button
-        on:click={() => (showSentiment = !showSentiment)}
-        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-      >
+      <button on:click={toggleView}>
         {showSentiment ? "View Revenue" : "View Sentiment"}
       </button>
     </div>
@@ -417,7 +420,7 @@ console.log("Top Host data -",data.topHostsCalculated);
         geojson={data.geojson}
         values={data.avgRevenueByNeighborhood}
         label="Average Revenue"
-        unit="$"
+        unit="€"
         tooltipFormatter={(v) => v.toFixed(2)}
         colorRange={[
           "#f5f8fc", // pastel icy blue

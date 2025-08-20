@@ -90,7 +90,7 @@
         .attr("y", height + 40)
         .style("text-anchor", "middle")
         .style("font-size", "12px")
-        .text("Availability Range (Days)");
+        .text("Availability in the Coming Days");
   
       // Tooltip
       d3.select("#tooltip").remove();

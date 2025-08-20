@@ -97,7 +97,7 @@
 
 <style>
   .kpi-card {
-    width: 280px;
+    width: 260px;
     background: white;
     padding: 1.5rem;
     border-radius: 0.8rem;
