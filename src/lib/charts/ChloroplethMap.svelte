@@ -129,22 +129,25 @@
             ? tooltipFormatter(val) + (unit ? " " + unit : "")
             : "No data"
         }`;
+
+        // Get SVG position
+        const svgRect = svg.getBoundingClientRect();
+
         // Improved tooltip positioning: adjust if near edge of viewport
-        const tooltipWidth = 150; // rough width
-        const tooltipHeight = 40;
+        let x = event.clientX - svgRect.left + 10; // 10px offset
+        let y = event.clientY - svgRect.top - 20; // 20px above cursor
 
-        const pageWidth = window.innerWidth;
-        const pageHeight = window.innerHeight;
+        // Clamp tooltip inside SVG
+        const tooltipWidth = 150; // approximate width
+        const tooltipHeight = 40; // approximate height
+        if (x + tooltipWidth > svgRect.width)
+          x = svgRect.width - tooltipWidth - 5;
+        if (y + tooltipHeight > svgRect.height)
+          y = svgRect.height - tooltipHeight - 5;
+        if (y < 0) y = 5;
 
-        let x = event.pageX + 10;
-        let y = event.pageY - 10;
-
-        if (x + tooltipWidth > pageWidth) x = event.pageX - tooltipWidth - 12;
-        if (y + tooltipHeight > pageHeight)
-          y = event.pageY - tooltipHeight - 12;
-
-        tooltipX = event.clientX + 10;
-        tooltipY = event.clientY - 20;
+        tooltipX = x;
+        tooltipY = y;
         tooltipVisible = true;
       })
       .on("mouseout", () => {
@@ -240,6 +243,8 @@
     font-size: 12px;
     z-index: 10;
     user-select: none;
-    transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+    transition:
+      transform 0.1s ease-out,
+      opacity 0.1s ease-out;
   }
 </style>

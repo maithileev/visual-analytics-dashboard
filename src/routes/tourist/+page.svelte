@@ -256,7 +256,7 @@ function sortBy(column: keyof NeighborhoodStats) {
       overviewValue={data.averagePricePerDayRounded}
       selectedValue={regionAverage}
       label="Average Price per night"
-      unit="€"
+      unit="$"
     />
   </div>
   <div class="bg-white p-5 rounded shadow">
@@ -324,7 +324,7 @@ selectedBinnedData={selectedData ?? []}
       </h2>
       <BubbleChart
         data={data.bubbleData}
-        xLabel="Average Price (€)"
+        xLabel="Average Price ($)"
         yLabel="Average Rating"
       />
     </div>

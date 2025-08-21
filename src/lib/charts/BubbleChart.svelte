@@ -10,7 +10,7 @@
     count: number;
   }[] = [];
 
-  export let xLabel: string = "Average Price (€)";
+  export let xLabel: string = "Average Price ($)";
   export let yLabel: string = "Average Rating";
 
   export let scaleConfig: {

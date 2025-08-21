@@ -238,7 +238,7 @@ export type RadarInputListing = {
 // ------------------- Normalization Functions -------------------
 
 export function normalizeROI(roi: number): number {
-  const min = -5;
+  const min = -2;
   const max = 20;
   return Math.max(0, Math.min((roi - min) / (max - min), 1));
 }

@@ -368,7 +368,7 @@ console.log("Top Host data -",data.topHostsCalculated);
       overviewValue={data.avgEstimatedRevenueRounded}
       selectedValue={selectedNeighborhoodAverageEstimatedRevenue}
       label="Estimated Annual Revenue"
-      unit="€"
+      unit="$"
     />
   </div>
   <div class="bg-white p-5 rounded shadow">
@@ -420,7 +420,7 @@ console.log("Top Host data -",data.topHostsCalculated);
         geojson={data.geojson}
         values={data.avgRevenueByNeighborhood}
         label="Average Revenue"
-        unit="€"
+        unit="$"
         tooltipFormatter={(v) => v.toFixed(2)}
         colorRange={[
           "#f5f8fc", // pastel icy blue
@@ -443,7 +443,7 @@ console.log("Top Host data -",data.topHostsCalculated);
   </div>
   <div class="chart-container legend-container">
     <h2 class="text-lg font-semibold mb-2">
-      Neighborhood Performance & ROI Radar
+      Neighborhood Performance Radar 
     </h2>
     <RadarChart
     overallData={{

@@ -502,13 +502,14 @@
       rawValue: safeValue(overallData.rawMetrics[key]),
     }));
 
-    const selectedPoints = neighborhoodNormalized
-      ? keys.map((key) => ({
-          key,
-          value: Math.max(safeValue(neighborhoodNormalized[key]), MIN_VISUAL_RADIUS),
-          rawValue: neighborhoodRawMetrics ? safeValue(neighborhoodRawMetrics[key]) : 0,
-        }))
-      : null;
+    const selectedPoints =
+  neighborhoodNormalized && Object.keys(neighborhoodNormalized).some(key => safeValue(neighborhoodNormalized[key]) > 0)
+    ? keys.map((key) => ({
+        key,
+        value: Math.max(safeValue(neighborhoodNormalized[key]), MIN_VISUAL_RADIUS),
+        rawValue: neighborhoodRawMetrics ? safeValue(neighborhoodRawMetrics[key]) : 0,
+      }))
+    : null;
 
     const lineGenerator = d3.lineRadial<{ key: string; value: number }>()
       .radius((d) => d.value * radius)

@@ -15,10 +15,10 @@
     // Helper functions
     const formatCurrency = (value: number) =>
         value >= 1_000_000
-            ? `€${(value / 1_000_000).toFixed(2)}M`
+            ? `$${(value / 1_000_000).toFixed(2)}M`
             : value >= 1_000
-              ? `€${(value / 1_000).toFixed(1)}K`
-              : `€${value}`;
+              ? `$${(value / 1_000).toFixed(1)}K`
+              : `$${value}`;
 
     const formatPriceRange = (min: number, max: number) =>
         min === max
