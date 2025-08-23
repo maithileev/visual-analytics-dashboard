@@ -2,7 +2,6 @@
   import { onMount } from "svelte";
   import { createEventDispatcher } from "svelte";
   const dispatch = createEventDispatcher();
-  import RangeSlider from "svelte-range-slider-pips";
   import { writable } from "svelte/store";
   import { fetchListingByUrl } from "$lib/utils/fetchListings";
 
