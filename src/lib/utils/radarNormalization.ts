@@ -1,4 +1,3 @@
-// // src/lib/utils/radarNormalization.ts
 
 // import { pricePerM2Lookup } from './pricePerM2Lookup';
 
@@ -194,7 +193,6 @@
 // }
 
 
-// src/lib/utils/radarNormalization.ts
 import { pricePerM2Lookup } from './pricePerM2Lookup';
 
 export const AVERAGE_SIZE_M2 = 75;

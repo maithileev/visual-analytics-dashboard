@@ -176,7 +176,7 @@ import type {RawMetrics, NormalizedMetrics} from "$lib/utils/radarNormalization"
 
         if (totalAvailability === 0) return null;
         const rate = (totalOccupiedDays / totalAvailability) * 100;
-        return +rate.toFixed(2); // Rounded to 2 decimals
+        return +rate.toFixed(2); 
       })()
     : null;
 
@@ -284,7 +284,6 @@ type PrecomputedNeighborhoodData = {
   normalized: NormalizedMetrics;
 };
 
-// Empty fallback metrics
 const emptyRaw: RawMetrics = {
   roi: 0,
   occupancyRate: 0,
@@ -311,7 +310,6 @@ $: neighborhoodData = $selectedNeighborhood
   ? data.precomputedData.neighborhoods[$selectedNeighborhood]
   : null;
 
-// Assign metrics with safe fallback
 $: neighborhoodRawMetrics = isNeighborhoodData(neighborhoodData)
   ? neighborhoodData.raw
   : emptyRaw;
@@ -320,7 +318,6 @@ $: neighborhoodNormalized = isNeighborhoodData(neighborhoodData)
   ? neighborhoodData.normalized
   : emptyNormalized;
 
-// Fallback ranges for chart axis scaling
 $: neighborhoodRanges = data.precomputedData.ranges;
 
 console.log("Precomputed Radar data", data.precomputedData.overall

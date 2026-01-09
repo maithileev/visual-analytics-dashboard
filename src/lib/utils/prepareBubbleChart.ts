@@ -2,8 +2,8 @@ export function prepareBubbleChart(
   rows: any[],
   neighborhoodField: string = 'neighbourhood_cleansed',
   xField: string,
-  yField: string = 'review_scores_rating', // default y is rating, can override
-  availabilityField: string = 'availability_365' // add availability field
+  yField: string = 'review_scores_rating', 
+  availabilityField: string = 'availability_365' 
 ): {
   label: string;
   avg_x: number;
@@ -13,7 +13,7 @@ export function prepareBubbleChart(
   const neighborhoodMap = new Map<string, { totalX: number; totalY: number; totalAvail: number; count: number; yCount: number; }>();
 
   rows.forEach((row) => {
-    const rowId = row.id ?? "(no id)"; // fallback if id is missing
+    const rowId = row.id ?? "(no id)"; 
     const neighborhood = row[neighborhoodField];
     if (!neighborhood) {
       console.log(`Row ${rowId} skipped: missing neighborhood`);
@@ -54,10 +54,10 @@ export function prepareBubbleChart(
 
     const entry = neighborhoodMap.get(neighborhood)!;
     entry.totalX += x;
-    entry.totalY += isNaN(y) ? 0 : y; // count y=0 if missing
-    entry.totalAvail += avail;   // <-- accumulate availability
+    entry.totalY += isNaN(y) ? 0 : y; 
+    entry.totalAvail += avail;
     entry.count += 1;
-    if (!isNaN(y)) entry.yCount += 1;   // track number of valid y values
+    if (!isNaN(y)) entry.yCount += 1;
 
   });
 
@@ -66,7 +66,7 @@ export function prepareBubbleChart(
     bubbleData = Array.from(neighborhoodMap.entries()).map(([label, val]) => ({
       label,
       avg_x: parseFloat(((val.totalX / val.totalAvail) * 100).toFixed(2)),
-      avg_y: val.yCount > 0 ? parseFloat((val.totalY / val.yCount).toFixed(2)) : 0, // avoid NaN
+      avg_y: val.yCount > 0 ? parseFloat((val.totalY / val.yCount).toFixed(2)) : 0, 
       count: val.count
     }));
   
@@ -76,7 +76,7 @@ export function prepareBubbleChart(
     bubbleData = Array.from(neighborhoodMap.entries()).map(([label, val]) => ({
       label,
     avg_x: parseFloat((val.totalX / val.count).toFixed(2)),
-    avg_y: val.yCount > 0 ? parseFloat((val.totalY / val.yCount).toFixed(2)) : 0, // avoid NaN
+    avg_y: val.yCount > 0 ? parseFloat((val.totalY / val.yCount).toFixed(2)) : 0,
     count: val.count
   }));
   }

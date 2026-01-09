@@ -81,7 +81,6 @@
       .attr("width", width)
       .attr("height", height);
 
-    // Draw neighborhoods
     svgSelection
       .selectAll("path")
       .data(geojson.features)
@@ -108,8 +107,7 @@
         tooltipText = `<strong>${raw || "Unknown"}</strong><br>
             Avg Sentiment: ${sentimentEntry?.avg_sentiment?.toFixed(2) ?? "N/A"}<br>
             Reviews: ${sentimentEntry?.review_count ?? "N/A"}`;
-        // Improved tooltip positioning: adjust if near edge of viewport
-        const tooltipWidth = 150; // rough width
+        const tooltipWidth = 150; 
         const tooltipHeight = 40;
 
         const pageWidth = window.innerWidth;
@@ -130,7 +128,6 @@
         tooltipVisible = false;
       });
 
-    // ----- Legend -----
     const legendWidth = 200;
     const legendY = usableHeight + legendMargin.top;
 
@@ -148,7 +145,6 @@
       .ticks(colorRange.length)
       .tickFormat(d3.format(".2f"));
 
-    // Gradient fill for legend
     const defs = svgSelection.append("defs");
     const gradient = defs
       .append("linearGradient")
@@ -176,7 +172,6 @@
       .style("font-size", "10px")
       .style("fill", "#333");
 
-    // Title above legend
     legendGroup
       .append("text")
       .attr("x", 0)
@@ -186,7 +181,6 @@
       .style("font-weight", "bold")
       .style("fill", "#333");
 
-    // Label under axis
   //   legendGroup
   //     .append("text")
   //     .attr("x", legendWidth / 2)

@@ -14,15 +14,11 @@ export type PrecomputedRadarData = {
   ranges: Ranges;
 };
 
-// Precompute radar data
 export function precomputeRadarData(listings: RadarInputListing[]): PrecomputedRadarData {
-  // 1️⃣ Compute overall metrics
   const overallRaw = aggregateRadarMetrics(listings);
 
-  // 2️⃣ Compute min/max ranges across all listings
   const ranges = findMinMaxValues(listings);
 
-  // 3️⃣ Normalize overall metrics
   const overallNormalized = normalizeRadarMetrics(overallRaw, {
     roi: ranges.roi.max,
     occupancyRate: ranges.occupancyRate.max,
@@ -31,7 +27,6 @@ export function precomputeRadarData(listings: RadarInputListing[]): PrecomputedR
     rating: ranges.rating.max,
   });
 
-  // 4️⃣ Group listings by neighborhood
   const neighborhoodsMap: Record<string, RadarInputListing[]> = {};
   listings.forEach((listing) => {
     const n = listing.neighborhood;
@@ -39,7 +34,6 @@ export function precomputeRadarData(listings: RadarInputListing[]): PrecomputedR
     neighborhoodsMap[n].push(listing);
   });
 
-  // 5️⃣ Compute metrics per neighborhood
   const neighborhoods: Record<string, NeighborhoodRadarData> = {};
   Object.entries(neighborhoodsMap).forEach(([neighborhood, nListings]) => {
     const raw = aggregateRadarMetrics(nListings);

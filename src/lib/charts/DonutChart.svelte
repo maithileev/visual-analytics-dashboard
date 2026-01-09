@@ -124,7 +124,6 @@
       selectedValue = hasLicenseObj.value;
     }
 
-    // Set initial center percent
     updateCenterPercent(summaryData.region?true:false, "Has License");
 
     const overviewArcs = svgSelection
@@ -254,7 +253,7 @@
         .on("click", (event, d) => {
           selectedLabel = d.data.label;
           selectedValue = d.data.value;
-          updateCenterPercent(true,selectedLabel); // outer (region) value
+          updateCenterPercent(true,selectedLabel);
         });
     }
   }
@@ -301,9 +300,9 @@
   .donut-wrapper {
     display: flex;
     flex-direction: column;
-    align-items: center; /* center label and svg horizontally */
+    align-items: center;
     width: 100%;
-    margin-bottom: 0.1rem; /* reduce bottom spacing */
+    margin-bottom: 0.1rem;
   }
 
   hr {
@@ -315,8 +314,8 @@
   svg {
     display: block;
     margin: 0 auto;
-    height: 120px; /* reduce SVG height */
-    width: 100%;   /* keep width proportional */
+    height: 120px;
+    width: 100%;
   }
 
   .tooltip {

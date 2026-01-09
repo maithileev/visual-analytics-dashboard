@@ -24,7 +24,6 @@
   const selectedNeighborhood = writable<string | null>(null);
   let selectedLabel: string | null = null;
 
-  // Responsive dimensions
   // let width = 600;
   // let height = 400;
   let width: number;
@@ -32,10 +31,8 @@
 
   const margin = { top: 30, right: 30, bottom: 60, left: 60 };
 
-  // Store data to draw (selected + neighbors or full)
   let displayedData = data;
 
-  // Find similar neighborhoods by Euclidean distance (x,y)
   function findSimilarNeighborhoods(selected, allData, topN = 5) {
     return allData
       .map((d) => ({
@@ -80,21 +77,17 @@
 
     const tooltipRect = tooltip.getBoundingClientRect();
 
-    // Base offsets
     let left = event.clientX - containerRect.left + 10;
     let top = event.clientY - containerRect.top + 20;
 
-    // Shift left if tooltip exceeds right boundary
     if (left + tooltipRect.width > containerRect.width) {
       left = event.clientX - containerRect.left - tooltipRect.width - 10;
     }
 
-    // Shift up if tooltip exceeds bottom boundary
     if (top + tooltipRect.height > containerRect.height) {
       top = event.clientY - containerRect.top - tooltipRect.height - 10;
     }
 
-    // Prevent negative positions
     left = Math.max(0, left);
     top = Math.max(0, top);
 
@@ -106,10 +99,8 @@
     tooltip.style.display = "none";
   }
 
-  // Redraw chart on mount and when data or selection changes
   $: updateDisplayedData($selectedNeighborhood);
 
-  // Handle window resize to update width/height responsively
   function resize() {
     const container = svg.parentElement;
     if (container) {
@@ -161,7 +152,6 @@
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // Axes
     chart
       .append("g")
       .attr("transform", `translate(0,${chartHeight})`)
@@ -186,7 +176,6 @@
       .style("font-size", "14px")
       .text(yLabel);
 
-    // Prepare nodes with initial positions and radius for simulation
     const nodes = filteredDisplayed.map((d) => ({
       ...d,
       x: x(d.avg_x),
@@ -194,7 +183,6 @@
       r: r(d.count),
     }));
 
-    // Create simulation for collision avoidance
     const simulation = d3
       .forceSimulation(nodes)
       .force("x", d3.forceX((d) => d.x).strength(0.8))
@@ -205,10 +193,8 @@
       )
       .stop();
 
-    // Run simulation for fixed iterations to stabilize layout
     for (let i = 0; i < 120; i++) simulation.tick();
 
-    // Draw all bubbles faded (background)
     chart
       .selectAll("circle.background")
       .data(filteredData)
@@ -221,7 +207,6 @@
       .style("fill", "#ccc")
       .style("opacity", 0.2);
 
-    // Draw foreground bubbles with updated positions from simulation
     chart
       .selectAll("circle.foreground")
       .data(nodes)
@@ -244,21 +229,17 @@
         const containerRect = svg.getBoundingClientRect();
         const tooltipRect = tooltip.getBoundingClientRect();
 
-        // Base offsets
         let left = event.clientX - containerRect.left + 10;
         let top = event.clientY - containerRect.top + 20;
 
-        // Shift left if tooltip exceeds right boundary
         if (left + tooltipRect.width > containerRect.width) {
           left = event.clientX - containerRect.left - tooltipRect.width - 10;
         }
 
-        // Shift up if tooltip exceeds bottom boundary
         if (top + tooltipRect.height > containerRect.height) {
           top = event.clientY - containerRect.top - tooltipRect.height - 10;
         }
 
-        // Prevent negative positions
         left = Math.max(0, left);
         top = Math.max(0, top);
 
@@ -283,12 +264,12 @@
     font-family: system-ui, sans-serif;
     display: block;
     width: 100%;
-    height: 100%; /* use 100% of container height */
+    height: 100%; 
   }
 
   .chart-container {
-    width: 100%; /* full width of tile */
-    height: 410px; /* tile height */
+    width: 100%; 
+    height: 410px;
     position: relative;
     padding: 0.5rem;
     display: flex;

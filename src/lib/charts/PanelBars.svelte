@@ -6,8 +6,7 @@
   const BAR_WIDTH = 120;
   const BAR_HEIGHT = 12; // reduced height
   const MAX_VALUE = 5;
-  const MIN_VISIBLE_PX = 4; // minimal visible gap (px) to show some bottom color when values are close
-
+  const MIN_VISIBLE_PX = 4; 
   $: tooltipVisible = Array(scores.length).fill(false);
   $: tooltipX = Array(scores.length).fill(0);
   $: tooltipY = Array(scores.length).fill(0);
@@ -35,7 +34,6 @@
     tooltipY[i] = pointerY + padding;
   }
 
-  // helper: clamp and compute display widths + color stacking
   const clamp = (v: number, lo = 0, hi = MAX_VALUE) =>
     Math.max(lo, Math.min(hi, v));
 
@@ -46,33 +44,26 @@
         ? (clamp(selectedValue) / MAX_VALUE) * BAR_WIDTH
         : 0;
 
-    // Only overview present
     if (selectedValue === null) {
       return {
         bottomWidth: ovRaw,
         topWidth: 0,
-        bottomColor: "#93c5fd", // overview
+        bottomColor: "#93c5fd", 
         topColor: null,
         drawOverviewOnTop: false,
       };
     }
 
-    // bottom is the larger, top is the smaller
     let bottomWidth = Math.max(ovRaw, selRaw);
     let topWidth = Math.min(ovRaw, selRaw);
 
-    // Ensure the bottom bar shows at least MIN_VISIBLE_PX beyond the top
     const diff = bottomWidth - topWidth;
     if (diff < MIN_VISIBLE_PX) {
-      // shrink the top so bottom shows MIN_VISIBLE_PX (do not increase bottom)
       topWidth = Math.max(0, bottomWidth - MIN_VISIBLE_PX);
     }
 
     const selectedBigger = selectedValue! > overviewValue;
 
-    // color assignment per your rule:
-    // if selected > overview -> overview drawn on top (topColor = overview)
-    // else -> selected drawn on top (topColor = selected)
     const bottomColor = selectedBigger ? "#2563eb" : "#93c5fd";
     const topColor = selectedBigger ? "#93c5fd" : "#2563eb";
 
@@ -94,7 +85,6 @@
     {@const bar = computeBar(overviewValue, selectedValue)}
     <div class="score-row">
       <div class="score-label">{label}</div>
-      <!-- SVG bar -->
       <svg
         width={BAR_WIDTH}
         height={BAR_HEIGHT}
@@ -103,7 +93,6 @@
         role="img"
         aria-label={`Overview: ${overviewValue}${unit}${selectedValue !== null ? `, Selected: ${selectedValue}${unit}` : ""}`}
       >
-        <!-- Gray base -->
         <rect
           x="0"
           y="0"
@@ -113,7 +102,6 @@
           rx="3"
         />
 
-        <!-- Draw bottom (larger) -->
         <rect
           x="0"
           y="0"
@@ -123,7 +111,6 @@
           rx="3"
         />
 
-        <!-- Draw top (smaller), only if topWidth > 0 -->
         {#if bar.topWidth > 0 && bar.topColor}
           <rect
             x="0"
@@ -155,7 +142,7 @@
 <style>
   .kpi-card {
     width: 300px;
-    min-height: 140px; /* reduced height */
+    min-height: 140px; 
     background: white;
     padding: 0.8rem 1rem;
     border-radius: 0.6rem;
@@ -175,9 +162,9 @@
   }
 
   hr {
-    height: 1px; /* explicit height */
-    background-color: #ddd; /* visible color */
-    border: none; /* remove default border */
+    height: 1px; 
+    background-color: #ddd; 
+    border: none; 
     margin: 0.2rem 0 0.4rem 0;
     width: 100%;
   }

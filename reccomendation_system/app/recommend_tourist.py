@@ -5,7 +5,6 @@ import json
 
 from utils.amenities_dict import encode_amenities
 
-# Load everything once to avoid reloading per request
 MODEL_PATH = 'models/tourist_rf_model.joblib'
 PICKLE_PATH = '../static/tourist_features.pkl'
 NPZ_PATH = '../static/tourist_features.npz'
@@ -19,7 +18,6 @@ data = np.load(NPZ_PATH)
 amenities_dict = json.load(open(AMENITIES_DICT_PATH))
 raw_df = pd.read_csv(RAW_DATA_PATH)
 
-# Ensure raw_df and df_meta align in order
 assert len(raw_df) == len(df_meta)
 
 def recommend_for_tourist(user_filters: dict, top_n=10):

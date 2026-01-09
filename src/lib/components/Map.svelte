@@ -11,7 +11,7 @@
   
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors',
-        opacity: 0.2 // to "dim" background, optional
+        opacity: 0.2 
       }).addTo(map);
   
       const geoLayer = L.geoJSON(geojson, {

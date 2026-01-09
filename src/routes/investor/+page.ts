@@ -65,7 +65,7 @@ export const load: PageLoad =  async function load({ fetch }) {
 
     if (trimmed.includes('applied')) return 'Applied';
     if (/^it[0-9a-z]+$/i.test(value.trim())) return 'Has License'; // Starts with "IT", alphanumeric
-    if (/^\d+$/.test(trimmed)) return 'No Info'; // Only numbers (invalid)
+    if (/^\d+$/.test(trimmed)) return 'No Info'; 
   
     return 'No Info';
   }

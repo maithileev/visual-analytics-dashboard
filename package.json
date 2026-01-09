@@ -24,6 +24,7 @@
 		"@sveltejs/adapter-static": "^3.0.8",
 		"d3": "^7.9.0",
 		"leaflet": "^1.9.4",
-		"papaparse": "^5.5.3"
+		"papaparse": "^5.5.3",
+		"svelte-range-slider-pips": "^4.0.7"
 	}
 }

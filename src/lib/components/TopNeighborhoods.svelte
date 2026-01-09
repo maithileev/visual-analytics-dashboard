@@ -16,7 +16,6 @@
     return val != null ? `${val.toFixed(digits)}${suffix}` : "N/A";
   }
 
-  // Scroll functions fixed to account for card width + gap
   function scrollNext() {
     if (!scrollContainer) return;
     const card = scrollContainer.querySelector<HTMLElement>(".carousel-card");
@@ -110,7 +109,7 @@
     display: flex;
     align-items: center;
     width: 100%;
-    height: 100%; /* inherits 500px from chart-container */
+    height: 100%; 
   }
 
   .carousel-track {
@@ -170,15 +169,15 @@
   .card-rank {
     font-weight: 700;
     margin-right: 0.5rem;
-    color: #60a5fa; /* light blue */
+    color: #60a5fa; 
   }
 
   .metrics-grid {
     flex: 1;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0.75rem 1rem; /* a little more vertical spacing */
-    padding: 0 1rem 1.2rem 1rem; /* bottom padding slightly increased */
+    gap: 0.75rem 1rem; 
+    padding: 0 1rem 1.2rem 1rem; 
   }
 
   .metric-label-line {

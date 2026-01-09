@@ -26,7 +26,6 @@
   $: regionEnd = hasRegion ? toWidth(regionMax!) : 0;
   $: regionWidth = hasRegion ? Math.max(regionEnd - regionStart, 1.5) : 0;
 
-  // Tooltip state
   let tooltipVisible = false;
   let tooltipX = 0;
   let tooltipY = 0;
@@ -58,13 +57,11 @@
       }}
       on:mouseleave={() => (tooltipVisible = false)}
     >
-      <!-- Overview bar (light blue background) -->
       <div
         class="bar overview-bar"
         style="left: {overviewStart}px; width: {overviewWidth}px"
       ></div>
 
-      <!-- Region overlay bar (deep blue) -->
       <div
         class="bar region-bar"
         style="left: {regionStart}px; width: {regionWidth}px"

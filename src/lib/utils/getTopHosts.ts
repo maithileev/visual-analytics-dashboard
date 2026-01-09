@@ -80,7 +80,6 @@ export function getTopHosts(listings: any[], topN = 5) {
         listings: 0,
         price_min: price,
         price_max: price,
-        // track earliest and latest URLs separately
         earliest: hostSince ? { date: hostSince, url: hostUrl } : null,
         latest: { date: hostSince || new Date(0), url: hostUrl }
       });
@@ -96,19 +95,16 @@ export function getTopHosts(listings: any[], topN = 5) {
     host.price_min = Math.min(host.price_min, price);
     host.price_max = Math.max(host.price_max, price);
 
-    // Track earliest host_since (if valid)
     if (hostSince) {
       if (!host.earliest || hostSince < host.earliest.date) {
         host.earliest = { date: hostSince, url: hostUrl };
       }
     }
 
-    // Always update latest (fallback if no earliest)
     if (!host.latest || !host.latest.date || (hostSince && hostSince > host.latest.date)) {
       host.latest = { date: hostSince || new Date(0), url: hostUrl };
     }
 
-    // If any account is superhost, mark as true
     if (listing.host_is_superhost === 't' || listing.host_is_superhost === true) {
       host.host_is_superhost = true;
     }

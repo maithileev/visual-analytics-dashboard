@@ -49,12 +49,11 @@
 
   console.log("Top neighborhood data", neighborhoodStats);
   let sortColumn: keyof NeighborhoodStats = 'sentimentScore';
-  let sortAscending = false; // default to descending
+  let sortAscending = false; 
 
   let compareField = null;
   $: compareField = $selectedNeighborhood ? 'compare' : null;
 
-  //Available stays
   $: selectedNeighborhoodAvailableListings =
     $selectedNeighborhood && data.detailed_data_rows?.length
       ? data.detailed_data_rows
@@ -73,7 +72,6 @@
   );
   console.log("selectedNeighborhood = ", $selectedNeighborhood);
 
-  //Average price per night
   $: selectedNeighborhoodPrices =
     $selectedNeighborhood && data.detailed_data_rows?.length
       ? data.detailed_data_rows
@@ -115,10 +113,8 @@
       })()
     : null;
 
-// Update `kpis` whenever data or neighborhood changes
 $: kpis = [...aggregateMultipleReviewScores(data.detailed_data_rows, columns, $selectedNeighborhood ?? null)];
 
-// Compute selectedReviewScores conditionally based on neighborhood
 $: selectedReviewScores = $selectedNeighborhood ? kpis : data.kpis;
 
 console.log("review scores -", selectedReviewScores)
@@ -212,7 +208,7 @@ $: selectedData = $selectedNeighborhood
 console.log(data.binnedDataOverall);
 
 function sortBy(column: keyof NeighborhoodStats) {
-    if (column === 'neighborhood') return; // no sorting on name
+    if (column === 'neighborhood') return; 
 
     if (sortColumn === column) {
       sortAscending = !sortAscending;

@@ -10,6 +10,8 @@
     let showRecoModal = false;
     let mode: 'tourist' | 'investor' | '' = '';
 
+    $: isHome = $page.url.pathname === base || $page.url.pathname === base + '/';
+
   function openRecoModal() {
     const path = $page.url.pathname;
     if (path.includes('/tourist')) mode = 'tourist';
@@ -18,13 +20,11 @@
     showRecoModal = true;
   }
 
-  function handleRecommendations(e) {
-    console.log("Recommended IDs:", e.detail.ids);
-    // You could store them in a store to display them on the tab page
-  }
+  // function handleRecommendations(e) {
+  //   console.log("Recommended IDs:", e.detail.ids);
+  // }
 
-    $: {
-    // Reset neighborhood selection on route change
+  $: {
     selectedNeighborhood.set(null);
   }
 
@@ -35,15 +35,18 @@
       <h1>Smart Stays: Naples Airbnb Analytics</h1>
     </header>
 
-    <nav class="nav-tabs">
-      <div class="tab-links">
-        <a href="{base}/tourist" class:selected={$page.url.pathname === base + '/tourist'}>Tourist</a>
-        <a href="{base}/investor" class:selected={$page.url.pathname === base + '/investor'}>Investor</a>
-      </div>
-      <button class="reco-button" on:click={openRecoModal}>Recommendations</button>
-    </nav>
+    {#if !isHome}
+      <nav class="nav-tabs">
+        <div class="tab-links">
+          <a href="{base}/" class:selected={isHome}>Home</a>
+          <a href="{base}/tourist" class:selected={$page.url.pathname === base + '/tourist'}>Tourist</a>
+          <a href="{base}/investor" class:selected={$page.url.pathname === base + '/investor'}>Investor</a>
+        </div>
+        <button class="reco-button" on:click={openRecoModal}>Recommendations</button>
+      </nav>
+      {/if}
+
         
-    <!-- Modal injected into layout -->
 {#if showRecoModal && mode}
 <RecommendationModal
   open={showRecoModal}

@@ -7,15 +7,12 @@
   const BAR_WIDTH = 200;
   const MIN_VISIBLE_PERCENT = 5;
 
-  // Tooltip state
   let tooltipVisible = false;
   let tooltipX = 0;
   let tooltipY = 0;
 
-  // Reactive calculations
   $: maxValue = Math.max(overviewValue, selectedValue ?? 0, 1);
 
-  // Percent of the bar for common value
   $: commonPercent =
     selectedValue !== null
       ? (Math.min(overviewValue, selectedValue) / maxValue) * 100
@@ -31,13 +28,11 @@
   $: adjustedDiffPercent =
     selectedValue !== null ? 100 - adjustedCommonPercent : 0;
 
-  // Difference in percentage
   $: percentDiff =
     selectedValue !== null
       ? ((selectedValue - overviewValue) / overviewValue) * 100
       : 0;
 
-  // Gradient bar: shades of blue
   $: barBackground =
     selectedValue === null
       ? "#2563eb"
@@ -47,12 +42,10 @@
           #93c5fd ${adjustedCommonPercent}%,
           #93c5fd 100%)`;
 
-  // Tooltip text
   $: tooltipText =
     `${label} Overview: ${overviewValue}${unit}` +
     (selectedValue !== null ? ` | Selected: ${selectedValue}${unit}` : "");
 
-  // Difference label
   $: diffText =
     selectedValue !== null
       ? `${percentDiff > 0 ? "+" : ""}${percentDiff.toFixed(2)}%`

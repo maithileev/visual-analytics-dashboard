@@ -35,7 +35,6 @@ export function aggregateROIFromRevenues(
   if (selectedNeighborhood) {
     avgPricePerM2 = pricePerM2Lookup[selectedNeighborhood] ?? 0;
   } else {
-    // Use overall average of all values in lookup
     const allPrices = Object.values(pricePerM2Lookup);
     avgPricePerM2 = allPrices.reduce((a, b) => a + b, 0) / allPrices.length;
   }
@@ -73,7 +72,6 @@ export function groupAverageRevenueByNeighborhood(data: any[]) {
     current.count += 1;
   }
 
-  // Convert to final object
   const avgRevenue: Record<string, number> = {};
   for (const [hood, { total, count }] of revenueMap.entries()) {
     avgRevenue[hood] = +(total / count).toFixed(2);
@@ -256,7 +254,7 @@ export function aggregateAverageRating(rows: any[]) {
 
     if (!hoodRaw || isNaN(rating)) return;
 
-    const hood = hoodRaw.trim().toLowerCase(); // Normalize
+    const hood = hoodRaw.trim().toLowerCase();
 
     if (!ratingMap.has(hood)) {
       ratingMap.set(hood, { total: 0, count: 0 });
@@ -269,14 +267,13 @@ export function aggregateAverageRating(rows: any[]) {
 
   const result: Record<string, number> = {};
   ratingMap.forEach((val, key) => {
-    result[key] = +(val.total / val.count).toFixed(2); // rounded average
+    result[key] = +(val.total / val.count).toFixed(2); 
   });
 
   return result;
 }
 
 
-// lib/utils/aggregate.ts
 export function getTopNeighborhoods(data: any[], topN: number = 3) {
   const neighborhoodStats = new Map<string, {
     count: number;
@@ -308,7 +305,6 @@ export function getTopNeighborhoods(data: any[], topN: number = 3) {
     stats.superhostCount += isSuperhost ? 1 : 0;
   });
 
-  // Convert map to array with calculated averages and percentages
   const neighborhoodArray = Array.from(neighborhoodStats.entries()).map(([name, stats]) => ({
     name,
     avgPrice: stats.count ? stats.totalPrice / stats.count : 0,
@@ -318,13 +314,11 @@ export function getTopNeighborhoods(data: any[], topN: number = 3) {
     pctSuperhost: stats.count ? (stats.superhostCount / stats.count) * 100 : 0,
   }));
 
-  // Sort by avgRating desc and limit to topN
   neighborhoodArray.sort((a, b) => b.avgRating - a.avgRating);
 
   return neighborhoodArray.slice(0, topN);
 }
 
-//Aggregation Metrics for ROI
 type Listing = {
   roi: number;                          // computed ROI %
   estimated_occupancy_l365d: number;   // days occupied in last 365

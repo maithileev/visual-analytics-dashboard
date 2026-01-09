@@ -5,7 +5,7 @@
   export let data: { [key: string]: string | number }[] = [];
   export let labelField: string = 'label';
   export let overallField: string = 'overall';
-  export let compareField: string | null = null; // null means no overlay
+  export let compareField: string | null = null; 
   export let colors: string[] = d3.schemeSet2;
   export let valueFormatter: (value: number) => string = (v) => v.toFixed(0);
 
@@ -42,10 +42,9 @@
 
     const hasCompareData = compareField && data.some(d => d[compareField!] !== undefined && d[compareField!] !== null);
 
-    const minWidth = 3; // Minimum width in pixels for selected bars
+    const minWidth = 3; 
 
     if (hasCompareData) {
-      // Grey bars for overall
       chart.selectAll('rect.overall')
         .data(data)
         .enter()
@@ -60,7 +59,6 @@
         .duration(800)
         .attr('width', d => x(+d[overallField]));
 
-      // Colored overlay bars for compare with min width and stroke
       chart.selectAll('rect.compare')
         .data(data)
         .enter()
@@ -80,7 +78,6 @@
           return w > 0 && w < minWidth ? minWidth : w;
         });
 
-      // Text showing both values
       chart.selectAll('text.value')
         .data(data)
         .enter()
@@ -97,7 +94,6 @@
         .style('fill', '#333');
 
     } else {
-      // Colored bars for overall only
       chart.selectAll('rect')
         .data(data)
         .enter()
@@ -111,7 +107,6 @@
         .duration(800)
         .attr('width', d => x(+d[overallField]));
 
-      // Only one value label
       chart.selectAll('text.value')
         .data(data)
         .enter()

@@ -52,7 +52,6 @@
     unsubscribe?.();
   });
 
-  // Initial draw and redraw on data changes
   $: if (geojson && values && svg) {
     drawMap();
   }
@@ -130,16 +129,14 @@
             : "No data"
         }`;
 
-        // Get SVG position
         const svgRect = svg.getBoundingClientRect();
 
-        // Improved tooltip positioning: adjust if near edge of viewport
-        let x = event.clientX - svgRect.left + 10; // 10px offset
-        let y = event.clientY - svgRect.top - 20; // 20px above cursor
+        let x = event.clientX - svgRect.left + 10; 
+        let y = event.clientY - svgRect.top - 20; 
 
         // Clamp tooltip inside SVG
-        const tooltipWidth = 150; // approximate width
-        const tooltipHeight = 40; // approximate height
+        const tooltipWidth = 150; 
+        const tooltipHeight = 40; 
         if (x + tooltipWidth > svgRect.width)
           x = svgRect.width - tooltipWidth - 5;
         if (y + tooltipHeight > svgRect.height)

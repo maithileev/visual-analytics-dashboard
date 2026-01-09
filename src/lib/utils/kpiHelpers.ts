@@ -27,7 +27,6 @@ export function aggregateMultipleReviewScores(
   columns: { columnName: string; label: string; unit: string }[],
   neighborhood: string | null | undefined
 ): KPI[] {
-  // Helper to compute average of numeric values in a column for given data
   function average(items: Listing[], columnName: string): number {
     const values = items
       .map((item) => Number(item[columnName]))

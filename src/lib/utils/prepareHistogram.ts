@@ -1,4 +1,3 @@
-// utils/aggregate.ts
 
 type Bin = {
     label: string;
@@ -26,7 +25,6 @@ type Bin = {
       { label: "181-365", min: 181, max: 365 }
     ];
   
-    // Filter & validate
     const filtered = listings
       .filter((row) => {
         const avail = Number(row.availability_365);

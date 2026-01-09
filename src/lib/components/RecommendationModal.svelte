@@ -5,7 +5,7 @@
   import { writable } from "svelte/store";
   import { fetchListingByUrl } from "$lib/utils/fetchListings";
 
-  let priceRange: [number, number] = [50, 200]; // initial min & max
+  let priceRange: [number, number] = [50, 200]; 
   let priceMinValue = 50;
   let priceMaxValue = 200;
   let start;
@@ -21,7 +21,6 @@
 
     if (!row) return null;
 
-  // fix price parsing
   let priceStr = row['price']?.trim() || '0';
   priceStr = priceStr.replace(/[^0-9.]/g, '');
   const price = parseFloat(priceStr);
@@ -357,7 +356,7 @@
   .form-row {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem; /* uniform spacing */
+    gap: 1.5rem; 
   }
 
   label {
@@ -385,7 +384,7 @@
   }
 
   button {
-    width: fit-content; /* shrink to content width */
+    width: fit-content;
     cursor: pointer;
     border-radius: 12px;
     border: 2px solid #4d65fa;
@@ -407,9 +406,9 @@
 
   .form-actions {
     display: flex;
-    gap: 1rem; /* uniform spacing between buttons */
+    gap: 1rem; 
     flex-wrap: wrap;
-    margin-top: 1.5rem; /* added spacing above buttons */
+    margin-top: 1.5rem; 
   }
 
   button[type="submit"] {
@@ -450,7 +449,7 @@
     background: #4d65fa;
     border-radius: 6px;
     top: 0;
-    transform: translateY(0); /* keep vertical as is */
+    transform: translateY(0); 
   }
 
   input[type="range"].thumb {
@@ -458,7 +457,7 @@
     width: 100%;
     border: none;
     background: none;
-    pointer-events: none; /* prevents overlap issues */
+    pointer-events: none; 
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -467,26 +466,26 @@
 
   input[type="range"].thumb::-webkit-slider-thumb {
     -webkit-appearance: none;
-    outline: none; /* removes the default rectangle */
+    outline: none; 
     border: none;
     height: 16px;
     width: 16px;
     border-radius: 50%;
     background: #0077cc;
     cursor: pointer;
-    pointer-events: all; /* re-enable dragging */
+    pointer-events: all; 
     position: relative;
     z-index: 2;
-    margin-top: -15px; /* centers thumb vertically on the track */
+    margin-top: -15px; 
   }
 
   input[type="range"].thumb:focus {
     outline: none;
-    box-shadow: none; /* remove glow/rectangle */
+    box-shadow: none; 
   }
 
   input[type="range"].thumb::-moz-range-thumb {
-    outline: none; /* removes the default rectangle */
+    outline: none; 
     border: none;
     height: 16px;
     width: 16px;
@@ -499,7 +498,6 @@
     z-index: 2;
   }
 
-  /* --- Slider values --- */
   .slider-values {
     display: flex;
     justify-content: space-between;
@@ -535,19 +533,19 @@
     }
     
     .recommendation-card p {
-      font-size: 0.8rem; /* shrink text */
+      font-size: 0.8rem; 
   margin: 0.2rem 0;
   }
 
   .recommendation-list {
     display: grid;
-  grid-template-columns: repeat(2, 1fr); /* 2 cards per row */
-  gap: 1rem; /* spacing between cards */
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem; 
   }
 
   .listing-image {
     width: 100%;
-  height: 100px; /* smaller image */
+  height: 100px; 
   border-radius: 0.5rem;
   margin-bottom: 0.4rem;
   object-fit: cover;

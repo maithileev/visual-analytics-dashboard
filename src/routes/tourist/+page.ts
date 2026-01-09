@@ -101,7 +101,7 @@ export const load: PageLoad =  async function load({ fetch }) {
   };
 
   const PRICE_THRESHOLD = 20;
-  const MAX_MIN_NIGHTS = 180; // example cap to exclude long-term rentals
+  const MAX_MIN_NIGHTS = 180; // example cap
   
   const pricesPerDay: number[] = detailed_data
     .map(row => {
@@ -120,7 +120,7 @@ export const load: PageLoad =  async function load({ fetch }) {
         return null;
       }
   
-      return price;  // <-- Use price as-is, since it's per night
+      return price;
     })
     .filter(p => p !== null) as number[];
   
@@ -154,7 +154,7 @@ const bubbleData = prepareBubbleChart(detailed_data_rows, 'neighbourhood_cleanse
 //console.log("Bubble data length - ",bubbleData.length);
 
 // room type distribution
-const overallRoomTypeData = aggregateRoomType(detailed_data_rows); // if selected neighborhood needed, pass it in too
+const overallRoomTypeData = aggregateRoomType(detailed_data_rows);
 //console.log('Chart data:', overallRoomTypeData);
 
 const touristRatingData = aggregateAverageRating(detailed_data_rows);

@@ -83,7 +83,6 @@
     const regionData = summaryData.region ? objToArray(summaryData.region) : null;
     const totalRegion = regionData ? d3.sum(regionData, (d) => d.value) : null;
 
-    // Update the center value depending on whether region is selected
     function setCenterData(isRegion: boolean) {
       const superhostVal = summaryData.overview["Superhost"] ?? 0;
 
@@ -97,7 +96,6 @@
       centerLabel = "Superhost";
     }
 
-    // Initialize to overall
     setCenterData(summaryData.region ? true:false);
 
     function arcTween(arc: d3.Arc<any, any>, startRadius: number, endRadius: number) {
@@ -134,7 +132,6 @@
             .attrTween("d", arcTween(arc, baseOuterRadius * expandFactor, baseOuterRadius));
         })
         .on("click", () => {
-          // If this is a region arc → show region percentage, else show overall
           setCenterData(isRegionArc);
         });
     }
@@ -190,7 +187,7 @@
   .kpi-card {
     width: 235px;
     background: white;
-    padding: 0.4rem 0.6rem; /* reduce vertical padding */
+    padding: 0.4rem 0.6rem;
     border-radius: 0.8rem;
     box-shadow: 0 4px 10px rgb(0 0 0 / 0.05);
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -209,8 +206,8 @@
   svg {
     display: block;
     margin: 0 auto;
-    height: 125px; /* reduce SVG height */
-    width: auto;   /* keep width proportional */
+    height: 125px;
+    width: auto;   
   }
 
   hr {
@@ -249,7 +246,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* left align by default */
+  align-items: flex-start; 
 }
 
 .donut-label {

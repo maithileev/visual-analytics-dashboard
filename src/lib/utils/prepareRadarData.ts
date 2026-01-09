@@ -17,7 +17,6 @@ export type RadarInputListing = {
 export function extractRadarData(rows: RawRow[]): RadarInputListing[] {
   return rows
     .map((row) => {
-      // Parse and clean each required field
 
       const annualRevenue = Number(row['estimated_revenue_l365d']);
       const neighborhood = row['neighbourhood_cleansed']?.trim() ?? '';
@@ -26,7 +25,6 @@ export function extractRadarData(rows: RawRow[]): RadarInputListing[] {
       const number_of_reviews = Number(row['number_of_reviews']);
       const review_scores_rating = Number(row['review_scores_rating']);
 
-      // Filter out rows with missing critical data
       if (
         isNaN(annualRevenue) ||
         !neighborhood ||

@@ -9,8 +9,8 @@
     let svg: SVGSVGElement;
     let hasMounted = false;
   
-    const totalWidth = 480;    // smaller total width for the whole SVG
-    const margin = { top: 40, right: 40, bottom: 50, left: 80 };  // wider left margin for labels
+    const totalWidth = 480;    
+    const margin = { top: 40, right: 40, bottom: 50, left: 80 }; 
     const width = totalWidth - margin.left - margin.right;
     const height = 400 - margin.top - margin.bottom;
   
@@ -107,11 +107,9 @@
         .style("pointer-events", "none")
         .style("font-size", "13px");
   
-      // Draw Bars
       overall.forEach((d, i) => {
         const xPos = x(d.label)!;
   
-        // Overall Bar
         g.append("rect")
           .attr("x", xPos)
           .attr("width", x.bandwidth())
@@ -127,7 +125,6 @@
           })
           .on("mouseleave", () => tooltip.style("opacity", 0));
   
-        // Selected Bar (overlay with minimum height)
         if (selected) {
           const sel = selected.find(s => s.label === d.label);
           if (sel) {
@@ -153,7 +150,6 @@
               })
               .on("mouseleave", () => tooltip.style("opacity", 0));
   
-            // Optional: Show count if it's tiny
             if (sel.count < d.count * 0.1) {
               g.append("text")
                 .attr("x", xPos + x.bandwidth() / 2)
@@ -167,7 +163,6 @@
         }
       });
   
-      // Cumulative line (from overall data)
       const line = d3.line<AggregatedBin>()
         .x(d => x(d.label)! + x.bandwidth() / 2)
         .y(d => yRight(d.cumulativePercent))
@@ -196,7 +191,6 @@
         })
         .on("mouseleave", () => tooltip.style("opacity", 0));
   
-      // Legend
       const legend = g.append("g").attr("transform", `translate(0, -20)`);
   
       legend.append("rect")

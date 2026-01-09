@@ -118,7 +118,7 @@ export async function loadAndAggregateTopNeighborhoods(fetchFn: typeof fetch): P
       totalReviews,
       startingPrice: round(p10),
       percentInstantBookable: round((instantBookableCount / rows.length) * 100),
-      totalListings: rows.length, // ✅ added
+      totalListings: rows.length, 
     });
   }
 
@@ -138,7 +138,6 @@ export async function loadAndAggregateTopNeighborhoods(fetchFn: typeof fetch): P
   const minListings = Math.min(...results.map(r => r.totalListings));
   const maxListings = Math.max(...results.map(r => r.totalListings));
 
-  // Add composite score including number of listings
   const scoredResults = results.map(r => {
     const sentimentNorm = normalize(r.sentimentScore, minSentiment, maxSentiment);
     const ratingNorm = normalize(r.averageRating, minRating, maxRating);
@@ -163,7 +162,7 @@ export async function loadAndAggregateTopNeighborhoods(fetchFn: typeof fetch): P
     .sort((a, b) => b.compositeScore - a.compositeScore)
     .slice(0, 3)
     .map(r => {
-      const { compositeScore, totalListings, ...rest } = r; // remove internal fields
+      const { compositeScore, totalListings, ...rest } = r; 
       return rest;
     });
 }

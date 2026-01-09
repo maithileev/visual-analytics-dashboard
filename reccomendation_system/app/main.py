@@ -24,7 +24,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load models and data at startup
 df_tourist = pd.read_pickle('../../static/preprocessed_data/tourist_features.pkl')
 df_investor = pd.read_pickle('../../static/preprocessed_data/investor_features.pkl')
 
@@ -47,7 +46,6 @@ async def recommend_tourist(
     limit: int = Query(10, ge=1, le=50)
 ):
     
-    # 1. Apply filters directly to DataFrame
     filtered = df_tourist.copy()
     
     if accommodates is not None:
@@ -65,7 +63,6 @@ async def recommend_tourist(
     if review_scores_rating is not None:
         filtered = filtered[filtered['review_scores_rating'] >= review_scores_rating]
 
-    # If no results, relax filters progressively
     if len(filtered) == 0:
         filtered = df_tourist.copy()
         if review_scores_rating is not None:
@@ -77,7 +74,6 @@ async def recommend_tourist(
         if accommodates is not None:
             filtered = filtered[filtered['accommodates'] >= max(1, accommodates - 1)]
 
-    # 2. Get features and predict
     valid_indices = filtered.index
     amenities = npz_tourist['amenities_numeric'][valid_indices]
     numeric = npz_tourist['numeric_features'][valid_indices]
@@ -86,12 +82,12 @@ async def recommend_tourist(
     
     preds = model_tourist.predict(X)
     listing_ids = npz_tourist['listing_ids'][valid_indices]
-    listing_urls = npz_tourist['listing_urls'][valid_indices]  # <-- add urls
+    listing_urls = npz_tourist['listing_urls'][valid_indices] 
 
     filtered = filtered.copy()
     filtered['predicted_score'] = preds
-    filtered['listing_id'] = listing_ids  # <-- align predictions with real IDs
-    filtered['listing_url'] = listing_urls  # <-- include urls
+    filtered['listing_id'] = listing_ids
+    filtered['listing_url'] = listing_urls 
 
 
     top = filtered.sort_values(by='predicted_score', ascending=False).head(limit)
@@ -111,7 +107,6 @@ async def recommend_investor(
 ):
     filtered = df_investor.copy()
 
-    # Apply filters
     if min_price is not None:
         filtered = filtered[filtered['price'] >= min_price]
     if max_price is not None:

@@ -12,7 +12,6 @@
         host_url: string;
     }[] = [];
 
-    // Helper functions
     const formatCurrency = (value: number) =>
         value >= 1_000_000
             ? `$${(value / 1_000_000).toFixed(2)}M`
@@ -113,12 +112,12 @@
     .container {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        column-gap: 1.5rem; /* horizontal spacing */
-        row-gap: 2rem; /* vertical spacing */
+        column-gap: 1.5rem; 
+        row-gap: 2rem; 
         width: 95%;
         padding: 1.5rem 2rem;
         font-family: "Inter", "Segoe UI", Arial, sans-serif;
-        justify-items: stretch; /* revert to center to prevent collapsing */
+        justify-items: stretch; 
         align-items: start;
     }
 
@@ -136,7 +135,7 @@
     }
 
     .tile-content {
-        flex: 1; /* fills available space, pushes button down */
+        flex: 1; 
         display: flex;
         flex-direction: column;
         gap: 0.6rem;
@@ -157,7 +156,7 @@
 
     .stat-row {
         display: flex;
-        justify-content: space-between; /* push label left, value right */
+        justify-content: space-between;
         align-items: center;
         gap: 0.9rem;
         margin-bottom: 0.6rem;
@@ -170,8 +169,8 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        flex-shrink: 0; /* label won’t shrink */
-        margin-right: 0.5rem; /* some spacing from value */
+        flex-shrink: 0;
+        margin-right: 0.5rem;
     }
 
     .value {
@@ -179,14 +178,13 @@
         font-size: 0.95rem;
         color: #2d3a4b;
         white-space: nowrap;
-        /* overflow: hidden; */
         text-overflow: ellipsis;
-        flex-shrink: 0; /* prevents it from shrinking too much */
-        text-align: left; /* keeps values right-aligned */
+        flex-shrink: 0; 
+        text-align: left;
     }
 
     .host-since-row {
-        gap: 0.2rem; /* smaller space than the default 0.9rem */
+        gap: 0.2rem;
     }
 
 
@@ -199,7 +197,7 @@
         font-size: 0.95rem;
         cursor: pointer;
         transition: background-color 0.3s ease;
-        margin-top: auto; /* pushes it to the bottom of the tile */
+        margin-top: auto;
     }
 
     .learn-more-btn:hover {

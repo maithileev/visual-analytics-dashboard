@@ -44,7 +44,6 @@ def prepare_investor_data(raw_csv_path, sentiment_csv_path, output_dir, amenitie
         amenities_dict = json.load(f)
     amenities_matrix = np.stack(df.apply(encode_amenities, axis=1, args=(amenities_dict,)))
 
-    # Numeric columns for investors
     numeric_cols = [
         'price', 'minimum_nights', 'maximum_nights',
         'availability_30', 'availability_60', 'availability_90', 'availability_365',
@@ -59,7 +58,6 @@ def prepare_investor_data(raw_csv_path, sentiment_csv_path, output_dir, amenitie
     ]
     numeric_features = df[numeric_cols].fillna(0).to_numpy()
 
-    # Boolean encoding
     bool_cols = ['host_is_superhost', 'instant_bookable']
     for col in bool_cols:
         df[col] = df[col].map({'t': 1, 'f': 0}).fillna(0).astype(int)
@@ -67,7 +65,6 @@ def prepare_investor_data(raw_csv_path, sentiment_csv_path, output_dir, amenitie
     print("Simplifying property_type...")
     df['property_type_simplified'] = df['property_type'].apply(simplify_property_type)
 
-    # Preserve existing category codes
     df['property_type_code'] = df['property_type_simplified'].astype('category').cat.codes
     df['room_type_code'] = df['room_type'].astype('category').cat.codes
     df['neighbourhood_code'] = df['neighbourhood_cleansed'].astype('category').cat.codes
