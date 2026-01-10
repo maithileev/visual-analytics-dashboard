@@ -237,6 +237,9 @@ function sortBy(column: keyof NeighborhoodStats) {
     return sortAscending ? '▲' : '▼';
   }
 
+  let showSimilarInfo = false;
+
+
 </script>
 
 <section class="kpi-grid">
@@ -315,15 +318,29 @@ selectedBinnedData={selectedData ?? []}
 
 <section class="dashboard-row-2">
   <div class="chart-container legend-container">
-    <h2 class="text-lg font-semibold mb-2">
+    <div class="chart-header">
+      <h2 class="text-lg font-semibold">
         Neighborhood Popularity: Price vs. Rating
       </h2>
+      <div class="info-wrapper">
+        <button
+          class="info-btn"
+          aria-label="Bubble chart information">
+          i
+        </button>
+        <div class="tooltip">
+          Click on a bubble to compare the top 5 similar neighborhoods
+        </div>
+      </div>
+    </div>
+    <div class="chart-body">
       <BubbleChart
         data={data.bubbleData}
         xLabel="Average Price ($)"
         yLabel="Average Rating"
       />
     </div>
+  </div>
     <div class="chart-container legend-container">
       <h2 class="text-xl font-bold mb-4">Top Neighborhoods for Tourists</h2>
       <div class="carousel-wrapper">

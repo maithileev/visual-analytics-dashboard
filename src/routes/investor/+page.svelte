@@ -456,14 +456,28 @@ console.log("Top Host data -",data.topHostsCalculated);
   <!-- <div class="bg-white p-4 rounded shadow"><HorizontalBarChart data={data.instantBookableCounts} />
       </div> -->
   <div class="chart-container legend-container">
-    <h2 class="text-lg font-semibold mb-2">
-      Neighborhood Popularity: Occupancy vs. Rating
-    </h2>
+    <div class="chart-header">
+      <h2 class="text-lg font-semibold mb-2">
+        Neighborhood Popularity: Occupancy vs. Rating
+      </h2>
+      <div class="info-wrapper">
+        <button
+          class="info-btn"
+          aria-label="Bubble chart information">
+          i
+        </button>
+        <div class="tooltip">
+          Click on a bubble to compare the top 5 similar neighborhoods
+        </div>
+      </div>
+    </div>
+    <div class="chart-body">
     <BubbleChart
       data={data.bubbleData}
       xLabel="Average Occupancy Rate (%)"
       yLabel="Average Rating"
     />
+    </div>
   </div>
   <div class="chart-container legend-container">
     <h2 class="text-lg font-semibold mb-2">Top Earning Hosts</h2>

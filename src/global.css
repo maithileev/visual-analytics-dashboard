@@ -284,3 +284,65 @@ footer {
   flex-shrink: 0;
   margin-left: 8px;
 }
+
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  margin-bottom: 0.5rem;
+}
+
+.chart-body {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.info-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.info-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 119, 204, 0.25);
+  background: rgba(0, 119, 204, 0.1);
+  color: #0077cc;
+  font-weight: 800;
+  font-size: 0.9rem;
+  cursor: default;
+  display: grid;
+  place-items: center;
+}
+
+/* Tooltip */
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  background: #ffffff;
+  color: rgba(0, 0, 0, 0.75);
+  padding: 0.45rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 10;
+}
+
+/* Show tooltip on hover */
+.info-wrapper:hover .tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
